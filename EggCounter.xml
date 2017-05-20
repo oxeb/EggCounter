@@ -1,10 +1,10 @@
 <GuiXml>
 	<Controls>
 		<TopLevelControl name="EggCounterIndicator" mouseEnabled="true" movable="true" clampedToScreen="true">
-			<Dimensions x="216" y="272"/>
+			<Dimensions x="216" y="304"/>
 			<Anchor point="BOTTOM" relativeTo="GuiRoot" relativePoint="CENTER" offsetY="-136"/>
 			<OnMoveStop>
-				EggCounter.OnMoveStop()
+				EggCounter.OnIndicatorMoveStop()
 			</OnMoveStop>
 			<Controls>
 				<Texture name="$(parent)Texture11" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
@@ -77,6 +77,8 @@
 				<Label name="$(parent)Label25" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture25" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
+
+
 			</Controls>
 		</TopLevelControl>
 	</Controls>

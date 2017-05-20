@@ -1,5 +1,11 @@
+local LibAddOnMenu2 = LibStub:GetLibrary("LibAddonMenu-2.0")
+
 EggCounter = {}
 EggCounter.name = "EggCounter"
+EggCounter.settingsName = "Egg Counter"
+EggCounter.settingsAuthor = "Gnevsyrom"
+EggCounter.settingsCommand = "/eggc"
+EggCounter.settingsVersion = 1
 --EggCounter.chatChannelType = CHAT_CHANNEL_PARTY
 EggCounter.chatChannelType = CHAT_CHANNEL_SAY
 EggCounter.chatSystemReady = false
@@ -209,32 +215,32 @@ function EggCounter:Initialize()
 	self:SetUltimateTexture("0131", "esoui/art/icons/ability_ava_003.dds")					--War Horn
 	self:SetUltimateTexture("0132", "esoui/art/icons/ability_ava_006.dds")					--Barrier
 
-	IndicatorLabelTable[1] = EggCounterIndicatorLabel11
-	IndicatorLabelTable[2] = EggCounterIndicatorLabel12
-	IndicatorLabelTable[3] = EggCounterIndicatorLabel13
-	IndicatorLabelTable[4] = EggCounterIndicatorLabel14
-	IndicatorLabelTable[5] = EggCounterIndicatorLabel15
-	IndicatorLabelTable[6] = EggCounterIndicatorLabel21
-	IndicatorLabelTable[7] = EggCounterIndicatorLabel22
-	IndicatorLabelTable[8] = EggCounterIndicatorLabel23
-	IndicatorLabelTable[9] = EggCounterIndicatorLabel24
-	IndicatorLabelTable[10] = EggCounterIndicatorLabel25
-	for key in pairs(IndicatorLabelTable) do
-		--IndicatorLabelTable[key]:SetHidden(true)
+	self.IndicatorLabelTable[1] = EggCounterIndicatorLabel11
+	self.IndicatorLabelTable[2] = EggCounterIndicatorLabel12
+	self.IndicatorLabelTable[3] = EggCounterIndicatorLabel13
+	self.IndicatorLabelTable[4] = EggCounterIndicatorLabel14
+	self.IndicatorLabelTable[5] = EggCounterIndicatorLabel15
+	self.IndicatorLabelTable[6] = EggCounterIndicatorLabel21
+	self.IndicatorLabelTable[7] = EggCounterIndicatorLabel22
+	self.IndicatorLabelTable[8] = EggCounterIndicatorLabel23
+	self.IndicatorLabelTable[9] = EggCounterIndicatorLabel24
+	self.IndicatorLabelTable[10] = EggCounterIndicatorLabel25
+	for key in pairs(self.IndicatorLabelTable) do
+		--self.IndicatorLabelTable[key]:SetHidden(true)
 	end
 
-	IndicatorTextureTable[1] = EggCounterIndicatorTexture11
-	IndicatorTextureTable[2] = EggCounterIndicatorTexture12
-	IndicatorTextureTable[3] = EggCounterIndicatorTexture13
-	IndicatorTextureTable[4] = EggCounterIndicatorTexture14
-	IndicatorTextureTable[5] = EggCounterIndicatorTexture15
-	IndicatorTextureTable[6] = EggCounterIndicatorTexture21
-	IndicatorTextureTable[7] = EggCounterIndicatorTexture22
-	IndicatorTextureTable[8] = EggCounterIndicatorTexture23
-	IndicatorTextureTable[9] = EggCounterIndicatorTexture24
-	IndicatorTextureTable[10] = EggCounterIndicatorTexture25
-	for key in pairs(IndicatorTextureTable) do
-		--IndicatorTextureTable[key]:SetHidden(true)
+	self.IndicatorTextureTable[1] = EggCounterIndicatorTexture11
+	self.IndicatorTextureTable[2] = EggCounterIndicatorTexture12
+	self.IndicatorTextureTable[3] = EggCounterIndicatorTexture13
+	self.IndicatorTextureTable[4] = EggCounterIndicatorTexture14
+	self.IndicatorTextureTable[5] = EggCounterIndicatorTexture15
+	self.IndicatorTextureTable[6] = EggCounterIndicatorTexture21
+	self.IndicatorTextureTable[7] = EggCounterIndicatorTexture22
+	self.IndicatorTextureTable[8] = EggCounterIndicatorTexture23
+	self.IndicatorTextureTable[9] = EggCounterIndicatorTexture24
+	self.IndicatorTextureTable[10] = EggCounterIndicatorTexture25
+	for key in pairs(self.IndicatorTextureTable) do
+		--self.IndicatorTextureTable[key]:SetHidden(true)
 	end
 
 	EggCounterIndicator:SetHidden(false)
@@ -258,6 +264,38 @@ function EggCounter:Initialize()
 
 	local SLASH_CMD = "/li"
 	SLASH_COMMANDS[SLASH_CMD] = EggCounter.Slash
+
+	self:Settings()
+end
+
+function EggCounter:Settings()
+	local panelData = {
+		type = "panel",
+		name = self.settingsName,
+		displayName = self.settingsName,
+		author = self.settingsAuthor,
+		version = self.settingsVersion,
+		slashCommand = self.settingsCommand,
+		registerForRefresh = true,
+		registerForDefaults = true,
+	}
+	local optionsData = {
+		[1] = {
+			type = "header",
+			name = "Clorb",
+		},
+		[2] = {
+			type = "dropdown",
+			name = "Ultimate 1",
+			tooltip = "The first ultimate to track",
+			choices = {"1", "2", "3",},
+			getFunc = function() return "1" end,
+			setFunc = function(x) d2s("x = ", x) end,
+			width = "half",
+		},
+	}
+	local controlOptionsPanel = LibAddOnMenu2:RegisterAddonPanel(self.name, panelData)
+	LibAddOnMenu2:RegisterOptionControls(self.name, optionsData)
 end
 
 --This can be called from XML so it is a function and not a method
@@ -301,9 +339,27 @@ end
 --Save the top and left coordinates of the indicator to a file whenever it 
 --moves so that the position is preserved across multiple play sessions
 --This can be called from XML so it is a function and not a method
-function EggCounter.OnMoveStop()
+function EggCounter.OnIndicatorMoveStop()
+	d("movin'")
 	EggCounter.savedVariables.left = EggCounterIndicator:GetLeft()
 	EggCounter.savedVariables.top = EggCounterIndicator:GetTop()
+end
+
+--[[
+					<Button name ="$(parent)Button" font="ZoFontWinH4" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="Setup">
+					<Dimensions x="216" y="24"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture15" relativePoint="BOTTOMLEFT" offsetY="8"/>
+					<Textures normal="esoui/art/buttons/blade_closed_up.dds" pressed="esoui/art/buttons/blade_closed_down.dds" mouseOver="esoui/art/buttons/blade_mouseover.dds"/>
+					<OnClicked>
+						EggCounter.OnClicked()
+					</OnClicked>
+				</Button>
+
+]]
+
+--This can be called from XML so it is a function and not a method
+function EggCounter.OnClicked()
+	d("Clicked!") --height was 272 = 48 * 5 + 8 * 4
 end
 
 --This can be called from an event so it is a function and not a method
@@ -392,7 +448,7 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 			d2s("backupBarUltimateEncoding = ", backupBarUltimateEncoding)
 			d2s("backupBarUltimateReady = ", backupBarUltimateReady)
 			
-			EggCounterIndicatorLabel:SetText(mainBarUltimateEncoding)
+			--EggCounterIndicatorLabel:SetText(mainBarUltimateEncoding)
 		end
 	end
 end

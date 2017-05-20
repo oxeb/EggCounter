@@ -1,0 +1,9 @@
+## Title: Egg Counter
+## Author: Gnevsyrom
+## APIVersion: 100018
+## SavedVariables: EggCounterSavedVariables
+
+Strings.lua
+EggCounter.xml
+EggCounter.lua
+Bindings.xml

@@ -5,7 +5,7 @@ EggCounter.name = "EggCounter"
 EggCounter.settingsName = "Egg Counter"
 EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
-EggCounter.settingsVersion = 1
+EggCounter.settingsVersion = "0.0.1"
 --EggCounter.chatChannelType = CHAT_CHANNEL_PARTY
 EggCounter.chatChannelType = CHAT_CHANNEL_SAY
 EggCounter.chatSystemReady = false
@@ -18,10 +18,16 @@ EggCounter.mainBarUltimateReady = false
 EggCounter.backupBarUltimateName = ""
 EggCounter.backupBarUltimateCost = 0
 EggCounter.backupBarUltimateReady = false
-EggCounter.UltimateNameTable = {}
-EggCounter.UltimateEncodingTable = {}
-EggCounter.IndicatorLabelTable = {}
-EggCounter.IndicatorTextureTable = {}
+EggCounter.ultimateNameTable = {}
+EggCounter.ultimateEncodingTable = {}
+EggCounter.ultimateDropdownMenuTable = nil
+EggCounter.ultimateStatusTable = {}
+
+EggCounter.indicatorLabelTable = {}
+EggCounter.indicatorTextureTable = {}
+EggCounter.indicatorStatusTable = {}
+
+EggCounter.ultimateDisplayGridTable = {}
 
 --################################################################################
 function b2s(x)
@@ -48,9 +54,9 @@ function EggCounter:DisplayMessage(message)
 end
 
 function EggCounter:DisplayPrompt(ultimateName, ultimateReady)
-	local encoding = self.UltimateNameTable[ultimateName]
-	if (type(encoding) == "string") and (type(self.UltimateEncodingTable[encoding]) == "table") then
-		local track = self.UltimateEncodingTable[encoding].track
+	local encoding = self.ultimateNameTable[ultimateName]
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		local track = self.ultimateEncodingTable[encoding].track
 		if track then
 			if ultimateReady then
 				self:DisplayMessage(ultimateName .. " is ready.")
@@ -113,30 +119,45 @@ function EggCounter:DetectUltimateStatus(override)
 end
 
 function EggCounter:InitializeUltimate(encoding, morph1, morph2, morph3, name)
-	self.UltimateNameTable[morph1] = encoding
-	self.UltimateNameTable[morph2] = encoding
-	self.UltimateNameTable[morph3] = encoding
-	self.UltimateEncodingTable[encoding] = {}
-	self.UltimateEncodingTable[encoding].encoding = encoding
+	self.ultimateNameTable[morph1] = encoding
+	self.ultimateNameTable[morph2] = encoding
+	self.ultimateNameTable[morph3] = encoding
+	self.ultimateEncodingTable[encoding] = {}
+	self.ultimateEncodingTable[encoding].encoding = encoding
 	if type(name) == "string" then
-		self.UltimateEncodingTable[encoding].name = name
+		self.ultimateEncodingTable[encoding].name = name
 	else
-		self.UltimateEncodingTable[encoding].name = morph1
+		self.ultimateEncodingTable[encoding].name = morph1
 	end
-	self.UltimateEncodingTable[encoding].track = false
-	self.UltimateEncodingTable[encoding].texture = nil
+	self.ultimateEncodingTable[encoding].track = false
+	self.ultimateEncodingTable[encoding].texture = nil
 end
 
 function EggCounter:TrackUltimate(encoding)
-	if (type(encoding) == "string") and (type(self.UltimateEncodingTable[encoding]) == "table") then
-		self.UltimateEncodingTable[encoding].track = true
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		self.ultimateEncodingTable[encoding].track = true
 	end
 end
 
 function EggCounter:SetUltimateTexture(encoding, texture)
-	if (type(encoding) == "string") and (type(self.UltimateEncodingTable[encoding]) == "table") then
-		self.UltimateEncodingTable[encoding].texture = texture
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		self.ultimateEncodingTable[encoding].texture = texture
 	end
+end
+
+function EggCounter:GetUltimateName(encoding)
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		return self.ultimateEncodingTable[encoding].name
+	end
+	return nil
+end
+
+function EggCounter:InitializeIndicator(index, x, y, visible, labelObject, labelContent, textureObject, textureContent)
+	self.ultimateDisplayGridTable[index].x = x
+	self.ultimateDisplayGridTable[index].y = y
+	self.ultimateDisplayGridTable[index].label = label
+	self.ultimateDisplayGridTable[index].texture = texture
+	
 end
 
 function EggCounter:Initialize()
@@ -215,34 +236,53 @@ function EggCounter:Initialize()
 	self:SetUltimateTexture("0131", "esoui/art/icons/ability_ava_003.dds")					--War Horn
 	self:SetUltimateTexture("0132", "esoui/art/icons/ability_ava_006.dds")					--Barrier
 
-	self.IndicatorLabelTable[1] = EggCounterIndicatorLabel11
-	self.IndicatorLabelTable[2] = EggCounterIndicatorLabel12
-	self.IndicatorLabelTable[3] = EggCounterIndicatorLabel13
-	self.IndicatorLabelTable[4] = EggCounterIndicatorLabel14
-	self.IndicatorLabelTable[5] = EggCounterIndicatorLabel15
-	self.IndicatorLabelTable[6] = EggCounterIndicatorLabel21
-	self.IndicatorLabelTable[7] = EggCounterIndicatorLabel22
-	self.IndicatorLabelTable[8] = EggCounterIndicatorLabel23
-	self.IndicatorLabelTable[9] = EggCounterIndicatorLabel24
-	self.IndicatorLabelTable[10] = EggCounterIndicatorLabel25
-	for key in pairs(self.IndicatorLabelTable) do
-		--self.IndicatorLabelTable[key]:SetHidden(true)
+	--This is a contrived attempt to ensure that no ultimate name
+	--is mispelled and that ultimates are listed in alphabetical
+	--order in dropdown menus.
+	self.ultimateDropdownMenuTable = {
+		"None",
+		self:GetUltimateName("0001"),	self:GetUltimateName("0002"),	self:GetUltimateName("0003"),
+		self:GetUltimateName("0011"),	self:GetUltimateName("0012"),	self:GetUltimateName("0013"),
+		self:GetUltimateName("0021"),	self:GetUltimateName("0022"),	self:GetUltimateName("0023"),
+		self:GetUltimateName("0031"),	self:GetUltimateName("0032"),	self:GetUltimateName("0033"),
+		self:GetUltimateName("0041"),	self:GetUltimateName("0042"),	self:GetUltimateName("0043"),
+		self:GetUltimateName("0101"),	self:GetUltimateName("0102"),	self:GetUltimateName("0103"),
+		self:GetUltimateName("0104"),	self:GetUltimateName("0105"),	self:GetUltimateName("0106"),
+		self:GetUltimateName("0111"),	self:GetUltimateName("0112"),	self:GetUltimateName("0113"),
+		self:GetUltimateName("0121"),	self:GetUltimateName("0122"),
+		self:GetUltimateName("0131"),	self:GetUltimateName("0132"),
+	}
+
+	self.indicatorLabelTable[1] = EggCounterIndicatorLabel11
+	self.indicatorLabelTable[2] = EggCounterIndicatorLabel12
+	self.indicatorLabelTable[3] = EggCounterIndicatorLabel13
+	self.indicatorLabelTable[4] = EggCounterIndicatorLabel14
+	self.indicatorLabelTable[5] = EggCounterIndicatorLabel15
+	self.indicatorLabelTable[6] = EggCounterIndicatorLabel21
+	self.indicatorLabelTable[7] = EggCounterIndicatorLabel22
+	self.indicatorLabelTable[8] = EggCounterIndicatorLabel23
+	self.indicatorLabelTable[9] = EggCounterIndicatorLabel24
+	self.indicatorLabelTable[10] = EggCounterIndicatorLabel25
+	for key in pairs(self.indicatorLabelTable) do
+		--self.indicatorLabelTable[key]:SetHidden(true)
 	end
 
-	self.IndicatorTextureTable[1] = EggCounterIndicatorTexture11
-	self.IndicatorTextureTable[2] = EggCounterIndicatorTexture12
-	self.IndicatorTextureTable[3] = EggCounterIndicatorTexture13
-	self.IndicatorTextureTable[4] = EggCounterIndicatorTexture14
-	self.IndicatorTextureTable[5] = EggCounterIndicatorTexture15
-	self.IndicatorTextureTable[6] = EggCounterIndicatorTexture21
-	self.IndicatorTextureTable[7] = EggCounterIndicatorTexture22
-	self.IndicatorTextureTable[8] = EggCounterIndicatorTexture23
-	self.IndicatorTextureTable[9] = EggCounterIndicatorTexture24
-	self.IndicatorTextureTable[10] = EggCounterIndicatorTexture25
-	for key in pairs(self.IndicatorTextureTable) do
-		--self.IndicatorTextureTable[key]:SetHidden(true)
+	self.indicatorTextureTable[1] = EggCounterIndicatorTexture11
+	self.indicatorTextureTable[2] = EggCounterIndicatorTexture12
+	self.indicatorTextureTable[3] = EggCounterIndicatorTexture13
+	self.indicatorTextureTable[4] = EggCounterIndicatorTexture14
+	self.indicatorTextureTable[5] = EggCounterIndicatorTexture15
+	self.indicatorTextureTable[6] = EggCounterIndicatorTexture21
+	self.indicatorTextureTable[7] = EggCounterIndicatorTexture22
+	self.indicatorTextureTable[8] = EggCounterIndicatorTexture23
+	self.indicatorTextureTable[9] = EggCounterIndicatorTexture24
+	self.indicatorTextureTable[10] = EggCounterIndicatorTexture25
+	for key in pairs(self.indicatorTextureTable) do
+		--self.indicatorTextureTable[key]:SetHidden(true)
 	end
 
+
+	
 	EggCounterIndicator:SetHidden(false)
 
 	--Fetch the saved variables from their file
@@ -262,14 +302,35 @@ function EggCounter:Initialize()
 
 	self.chatSystemReady = true
 
-	local SLASH_CMD = "/li"
-	SLASH_COMMANDS[SLASH_CMD] = EggCounter.Slash
-
 	self:Settings()
 end
 
+function EggCounter:GetSettingsDropdownMenuValue(menuNumber)
+	d2s("menuNumber = ", menuNumber)
+	d2s("menuValue = ", "None")
+	return "None"
+end
+
+function EggCounter:SetSettingsDropdownMenuValue(menuNumber, menuValue)
+	d2s("menuNumber = ", menuNumber)
+	d2s("menuValue = ", menuValue)
+end
+
+function EggCounter:GenerateSettingsDropdownMenu(menuNumber, menuName, menuTooltip, menuDefault)
+	return {
+		type = "dropdown",
+		name = menuName,
+		tooltip = menuTooltip,
+		choices = self.ultimateDropdownMenuTable,
+		default = menuDefault,
+		getFunc = function() return EggCounter:GetSettingsDropdownMenuValue(menuNumber) end,
+		setFunc = function(menuValue) EggCounter:SetSettingsDropdownMenuValue(menuNumber, menuValue) end,
+		width = "full",
+	}
+end
+
 function EggCounter:Settings()
-	local panelData = {
+	local settingsPanelData = {
 		type = "panel",
 		name = self.settingsName,
 		displayName = self.settingsName,
@@ -279,23 +340,84 @@ function EggCounter:Settings()
 		registerForRefresh = true,
 		registerForDefaults = true,
 	}
-	local optionsData = {
+	local settingsPanelControlData = {
 		[1] = {
 			type = "header",
-			name = "Clorb",
+			name = "Interface Scale Settings",
 		},
 		[2] = {
-			type = "dropdown",
-			name = "Ultimate 1",
-			tooltip = "The first ultimate to track",
-			choices = {"1", "2", "3",},
-			getFunc = function() return "1" end,
-			setFunc = function(x) d2s("x = ", x) end,
-			width = "half",
+			type = "description",
+			text = "Adjust the size and scale of the Ultimate Display Grid"
 		},
+		[3] = {
+			type = "slider",
+			name = "Font Size",
+			tooltip = "",
+			min = 1,
+			max = 5,
+			step = 1,
+			getFunc = function() return 1 end,
+			setFunc = function(value) end,
+			width = "full",
+			default = "1",
+		},
+		[4] = {
+			type = "slider",
+			name = "Interface Scale in Pixels",
+			tooltip = "Adjust the size of the icons and text in the Ultimate Display Grid",
+			min = 32,
+			max = 128,
+			step = 1,
+			getFunc = function() return 48 end,
+			setFunc = function(value) d2s("slider value = ", value) end,
+			width = "full",
+			default = "48",
+		},
+		[5] = {
+			type = "slider",
+			name = "Ultimate Display Grid Width",
+			tooltip = "",
+			min = 1,
+			max = 5,
+			step = 1,
+			getFunc = function() return 2 end,
+			setFunc = function(value) end,
+			width = "full",
+			default = "3",
+		},
+		[6] = {
+			type = "slider",
+			name = "Ultimate Display Grid Height",
+			tooltip = "",
+			min = 1,
+			max = 5,
+			step = 1,
+			getFunc = function() return 2 end,
+			setFunc = function(value) end,
+			width = "full",
+			default = "3",
+		},
+		[7] = {
+			type = "header",
+			name = "Ultimate Tracking Settings",
+			
+		},
+		[8] = {
+			type = "description",
+			text = "Select which ultimate abilities to track with the Ultimate Display Grid"
+		},
+		[9] = self:GenerateSettingsDropdownMenu(1, "Alpha", "Beta"),
+		[10] = self:GenerateSettingsDropdownMenu(2, "Gamma", "Delta"),
 	}
-	local controlOptionsPanel = LibAddOnMenu2:RegisterAddonPanel(self.name, panelData)
-	LibAddOnMenu2:RegisterOptionControls(self.name, optionsData)
+	
+	--The first parameter to LibAddOnMenu2:RegisterAddonPanel and 
+	--LibAddOnMenu2:RegisterOptionControls must be the same unique
+	--string literal.  If the parameters are not such a literal then
+	--many variables go out of the global scope, and this breaks any
+	--interaction between this source file and the rest of the addon.
+	--I go to a dark place when I consider the implications of this.
+	local settingsPanelHandle = LibAddOnMenu2:RegisterAddonPanel("EggCounter_Gnevsyrom", settingsPanelData)
+	LibAddOnMenu2:RegisterOptionControls("EggCounter_Gnevsyrom", settingsPanelControlData)
 end
 
 --This can be called from XML so it is a function and not a method
@@ -305,8 +427,8 @@ end
 
 function EggCounter:GenerateReportMessage(ultimateName, ultimateReady)
 	local message = "0000f"
-	local encoding = self.UltimateNameTable[ultimateName]
-	if (type(encoding) == "string") and (type(self.UltimateEncodingTable[encoding]) == "table") then
+	local encoding = self.ultimateNameTable[ultimateName]
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
 		local readyMessage = "f"
 		if ultimateReady then
 			readyMessage = "t"
@@ -339,27 +461,9 @@ end
 --Save the top and left coordinates of the indicator to a file whenever it 
 --moves so that the position is preserved across multiple play sessions
 --This can be called from XML so it is a function and not a method
-function EggCounter.OnIndicatorMoveStop()
-	d("movin'")
+function EggCounter.OnMoveStop()
 	EggCounter.savedVariables.left = EggCounterIndicator:GetLeft()
 	EggCounter.savedVariables.top = EggCounterIndicator:GetTop()
-end
-
---[[
-					<Button name ="$(parent)Button" font="ZoFontWinH4" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="Setup">
-					<Dimensions x="216" y="24"/>
-					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture15" relativePoint="BOTTOMLEFT" offsetY="8"/>
-					<Textures normal="esoui/art/buttons/blade_closed_up.dds" pressed="esoui/art/buttons/blade_closed_down.dds" mouseOver="esoui/art/buttons/blade_mouseover.dds"/>
-					<OnClicked>
-						EggCounter.OnClicked()
-					</OnClicked>
-				</Button>
-
-]]
-
---This can be called from XML so it is a function and not a method
-function EggCounter.OnClicked()
-	d("Clicked!") --height was 272 = 48 * 5 + 8 * 4
 end
 
 --This can be called from an event so it is a function and not a method

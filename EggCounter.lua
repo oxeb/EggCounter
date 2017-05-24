@@ -23,11 +23,23 @@ EggCounter.ultimateEncodingTable = {}
 EggCounter.ultimateDropdownMenuTable = nil
 EggCounter.ultimateStatusTable = {}
 
-EggCounter.indicatorLabelTable = {}
-EggCounter.indicatorTextureTable = {}
+--EggCounter.indicatorLabelTable = {}
+--EggCounter.indicatorTextureTable = {}
+
+EggCounter.ultimateDisplayGridTextureTable = {}
+EggCounter.ultimateDisplayGridLabelTable = {}
+
 EggCounter.indicatorStatusTable = {}
 
 EggCounter.ultimateDisplayGridTable = {}
+
+EggCounter.version = 1
+EggCounter.default = {
+	left = 100,
+	top = 100,
+	ultimateDisplayGridFontSize = 5,
+	ultimateDisplayGridFont = "ZoFontWinH1",
+}
 
 --################################################################################
 function b2s(x)
@@ -152,12 +164,12 @@ function EggCounter:GetUltimateName(encoding)
 	return nil
 end
 
-function EggCounter:InitializeIndicator(index, x, y, visible, labelObject, labelContent, textureObject, textureContent)
+function EggCounter:InitializeUltimateDisplayGrid(index, x, y, texture, label)
+	self.ultimateDisplayGridTable[index] = {}
 	self.ultimateDisplayGridTable[index].x = x
 	self.ultimateDisplayGridTable[index].y = y
-	self.ultimateDisplayGridTable[index].label = label
 	self.ultimateDisplayGridTable[index].texture = texture
-	
+	self.ultimateDisplayGridTable[index].label = label
 end
 
 function EggCounter:Initialize()
@@ -237,7 +249,7 @@ function EggCounter:Initialize()
 	self:SetUltimateTexture("0132", "esoui/art/icons/ability_ava_006.dds")					--Barrier
 
 	--This is a contrived attempt to ensure that no ultimate name
-	--is mispelled and that ultimates are listed in alphabetical
+	--is mispelled and that ultimates are listed in my personal
 	--order in dropdown menus.
 	self.ultimateDropdownMenuTable = {
 		"None",
@@ -253,40 +265,55 @@ function EggCounter:Initialize()
 		self:GetUltimateName("0131"),	self:GetUltimateName("0132"),
 	}
 
-	self.indicatorLabelTable[1] = EggCounterIndicatorLabel11
-	self.indicatorLabelTable[2] = EggCounterIndicatorLabel12
-	self.indicatorLabelTable[3] = EggCounterIndicatorLabel13
-	self.indicatorLabelTable[4] = EggCounterIndicatorLabel14
-	self.indicatorLabelTable[5] = EggCounterIndicatorLabel15
-	self.indicatorLabelTable[6] = EggCounterIndicatorLabel21
-	self.indicatorLabelTable[7] = EggCounterIndicatorLabel22
-	self.indicatorLabelTable[8] = EggCounterIndicatorLabel23
-	self.indicatorLabelTable[9] = EggCounterIndicatorLabel24
-	self.indicatorLabelTable[10] = EggCounterIndicatorLabel25
-	for key in pairs(self.indicatorLabelTable) do
-		--self.indicatorLabelTable[key]:SetHidden(true)
+
+	--This is gross and error prone, but it avoids the usage of virtual
+	--controls and there are only 25 lines.
+	self:InitializeUltimateDisplayGrid( 1, 1, 1, EggCounterUltimateDisplayGridTexture11, EggCounterUltimateDisplayGridLabel11)
+	self:InitializeUltimateDisplayGrid( 2, 1, 2, EggCounterUltimateDisplayGridTexture12, EggCounterUltimateDisplayGridLabel12)
+	self:InitializeUltimateDisplayGrid( 3, 1, 3, EggCounterUltimateDisplayGridTexture13, EggCounterUltimateDisplayGridLabel13)
+	self:InitializeUltimateDisplayGrid( 4, 1, 4, EggCounterUltimateDisplayGridTexture14, EggCounterUltimateDisplayGridLabel14)
+	self:InitializeUltimateDisplayGrid( 5, 1, 5, EggCounterUltimateDisplayGridTexture15, EggCounterUltimateDisplayGridLabel15)
+	self:InitializeUltimateDisplayGrid( 6, 2, 1, EggCounterUltimateDisplayGridTexture21, EggCounterUltimateDisplayGridLabel21)
+	self:InitializeUltimateDisplayGrid( 7, 2, 2, EggCounterUltimateDisplayGridTexture22, EggCounterUltimateDisplayGridLabel22)
+	self:InitializeUltimateDisplayGrid( 8, 2, 3, EggCounterUltimateDisplayGridTexture23, EggCounterUltimateDisplayGridLabel23)
+	self:InitializeUltimateDisplayGrid( 9, 2, 4, EggCounterUltimateDisplayGridTexture24, EggCounterUltimateDisplayGridLabel24)
+	self:InitializeUltimateDisplayGrid(10, 2, 5, EggCounterUltimateDisplayGridTexture25, EggCounterUltimateDisplayGridLabel25)
+	self:InitializeUltimateDisplayGrid(11, 3, 1, EggCounterUltimateDisplayGridTexture31, EggCounterUltimateDisplayGridLabel31)
+	self:InitializeUltimateDisplayGrid(12, 3, 2, EggCounterUltimateDisplayGridTexture32, EggCounterUltimateDisplayGridLabel32)
+	self:InitializeUltimateDisplayGrid(13, 3, 3, EggCounterUltimateDisplayGridTexture33, EggCounterUltimateDisplayGridLabel33)
+	self:InitializeUltimateDisplayGrid(14, 3, 4, EggCounterUltimateDisplayGridTexture34, EggCounterUltimateDisplayGridLabel34)
+	self:InitializeUltimateDisplayGrid(15, 3, 5, EggCounterUltimateDisplayGridTexture35, EggCounterUltimateDisplayGridLabel35)
+	self:InitializeUltimateDisplayGrid(16, 4, 1, EggCounterUltimateDisplayGridTexture41, EggCounterUltimateDisplayGridLabel41)
+	self:InitializeUltimateDisplayGrid(17, 4, 2, EggCounterUltimateDisplayGridTexture42, EggCounterUltimateDisplayGridLabel42)
+	self:InitializeUltimateDisplayGrid(18, 4, 3, EggCounterUltimateDisplayGridTexture43, EggCounterUltimateDisplayGridLabel43)
+	self:InitializeUltimateDisplayGrid(19, 4, 4, EggCounterUltimateDisplayGridTexture44, EggCounterUltimateDisplayGridLabel44)
+	self:InitializeUltimateDisplayGrid(20, 4, 5, EggCounterUltimateDisplayGridTexture45, EggCounterUltimateDisplayGridLabel45)
+	self:InitializeUltimateDisplayGrid(21, 5, 1, EggCounterUltimateDisplayGridTexture51, EggCounterUltimateDisplayGridLabel51)
+	self:InitializeUltimateDisplayGrid(22, 5, 2, EggCounterUltimateDisplayGridTexture52, EggCounterUltimateDisplayGridLabel52)
+	self:InitializeUltimateDisplayGrid(23, 5, 3, EggCounterUltimateDisplayGridTexture53, EggCounterUltimateDisplayGridLabel53)
+	self:InitializeUltimateDisplayGrid(24, 5, 4, EggCounterUltimateDisplayGridTexture54, EggCounterUltimateDisplayGridLabel54)
+	self:InitializeUltimateDisplayGrid(25, 5, 5, EggCounterUltimateDisplayGridTexture55, EggCounterUltimateDisplayGridLabel55)
+
+	for key in pairs(self.ultimateDisplayGridTable) do
+		local text = "" .. key
+		if key < 10 then
+			text = "0" .. text
+		end
+		self.ultimateDisplayGridTable[key].label:SetText(text)
 	end
 
-	self.indicatorTextureTable[1] = EggCounterIndicatorTexture11
-	self.indicatorTextureTable[2] = EggCounterIndicatorTexture12
-	self.indicatorTextureTable[3] = EggCounterIndicatorTexture13
-	self.indicatorTextureTable[4] = EggCounterIndicatorTexture14
-	self.indicatorTextureTable[5] = EggCounterIndicatorTexture15
-	self.indicatorTextureTable[6] = EggCounterIndicatorTexture21
-	self.indicatorTextureTable[7] = EggCounterIndicatorTexture22
-	self.indicatorTextureTable[8] = EggCounterIndicatorTexture23
-	self.indicatorTextureTable[9] = EggCounterIndicatorTexture24
-	self.indicatorTextureTable[10] = EggCounterIndicatorTexture25
-	for key in pairs(self.indicatorTextureTable) do
-		--self.indicatorTextureTable[key]:SetHidden(true)
-	end
+
 
 
 	
-	EggCounterIndicator:SetHidden(false)
+
+
+
+	
+	EggCounterUltimateDisplayGrid:SetHidden(false)
 
 	--Fetch the saved variables from their file
-	self.savedVariables = ZO_SavedVars:New("EggCounterSavedVariables", 1, nil, {})
+	self.savedVariables = ZO_SavedVars:NewAccountWide("EggCounterSavedVariables", self.version, nil, self.default)
 	self:LoadIndicatorPosition()
 	
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_ACTION_SLOTS_FULL_UPDATE, self.OnActionSlotsFullUpdate)
@@ -329,6 +356,45 @@ function EggCounter:GenerateSettingsDropdownMenu(menuNumber, menuName, menuToolt
 	}
 end
 
+--[[
+	ultimateDisplayGridX
+	ultimateDisplayGridY
+	ultimateDisplayGridWidth
+	ultimateDisplayGridHeight
+	ultimateDisplayGridFont
+	track1 .. track 10
+]]
+
+function EggCounter:GetUltimateDisplayGridFontSize()
+	return self.savedVariables.ultimateDisplayGridFontSize
+end
+
+--552, 480
+--1080 Y=1:1
+--1920 X=1.7777~:1
+
+
+function EggCounter:SetUltimateDisplayGridFontSize(value)
+	self.savedVariables.ultimateDisplayGridFontSize = value
+
+	--Smaller values correspond to larger fonts, reverse this
+	--to be less confusing to the user
+	if value == 1 then
+		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH5"
+	elseif value == 2 then
+		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH4"
+	elseif value == 3 then
+		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH3"
+	elseif value == 4 then
+		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH2"
+	else
+		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH1"
+	end
+	for key in pairs(self.indicatorLabelTable) do
+		self.indicatorLabelTable[key]:SetFont(self.savedVariables.ultimateDisplayGridFont)
+	end
+end
+
 function EggCounter:Settings()
 	local settingsPanelData = {
 		type = "panel",
@@ -356,10 +422,9 @@ function EggCounter:Settings()
 			min = 1,
 			max = 5,
 			step = 1,
-			getFunc = function() return 1 end,
-			setFunc = function(value) end,
+			getFunc = function() return EggCounter:GetUltimateDisplayGridFontSize() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridFontSize(value) end,
 			width = "full",
-			default = "1",
 		},
 		[4] = {
 			type = "slider",
@@ -447,23 +512,39 @@ function EggCounter.Report()
 end
 
 function EggCounter.Reset()
+	local za = EggCounterUltimateDisplayGrid:GetScale()
+	local x1,y1,x2,y2 = EggCounterUltimateDisplayGrid:GetScreenRect()
+
+	EggCounterUltimateDisplayGrid:ClearAnchors()
+	EggCounterUltimateDisplayGrid:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, 100, 100)
+
+	lx11, ly11 = EggCounterUltimateDisplayGridLabel11:GetDimensions()
+
+
+	d2s("x1 = ", x1)
+	d2s("y1 = ", y1)
+	d2s("x2 = ", x2)
+	d2s("y2 = ", y2)
+
+	d2s("lx11 = ", lx11)
+	d2s("ly11 = ", ly11)
 end
 
 --Load the top and left coordinates of the indicator from a file when
 --the addon first starts
 function EggCounter:LoadIndicatorPosition()
-	local left = self.savedVariables.left
-	local top = self.savedVariables.top
-	EggCounterIndicator:ClearAnchors()
-	EggCounterIndicator:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
+	--local left = self.savedVariables.left
+	--local top = self.savedVariables.top
+	--EggCounterUltimateDisplayGrid:ClearAnchors()
+	--EggCounterUltimateDisplayGrid:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
 end
 
 --Save the top and left coordinates of the indicator to a file whenever it 
 --moves so that the position is preserved across multiple play sessions
 --This can be called from XML so it is a function and not a method
 function EggCounter.OnMoveStop()
-	EggCounter.savedVariables.left = EggCounterIndicator:GetLeft()
-	EggCounter.savedVariables.top = EggCounterIndicator:GetTop()
+	--EggCounter.savedVariables.left = EggCounterUltimateDisplayGrid:GetLeft()
+	--EggCounter.savedVariables.top = EggCounterUltimateDisplayGrid:GetTop()
 end
 
 --This can be called from an event so it is a function and not a method
@@ -532,8 +613,8 @@ function EggCounter:DecodeBoolean(character)
 end
 
 function EggCounter.Slash(message)
-	d(message)
-	EggCounterIndicatorTexture:SetTexture(message)
+	--d(message)
+	--EggCounterUltimateDisplayGridTexture:SetTexture(message)
 end
 
 --This can be called from an event so it is a function and not a method
@@ -552,7 +633,7 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 			d2s("backupBarUltimateEncoding = ", backupBarUltimateEncoding)
 			d2s("backupBarUltimateReady = ", backupBarUltimateReady)
 			
-			--EggCounterIndicatorLabel:SetText(mainBarUltimateEncoding)
+			--EggCounterUltimateDisplayGridLabel:SetText(mainBarUltimateEncoding)
 		end
 	end
 end

@@ -1,81 +1,211 @@
 <GuiXml>
 	<Controls>
-		<TopLevelControl name="EggCounterIndicator" mouseEnabled="true" movable="true" clampedToScreen="true">
-			<Dimensions x="216" y="272"/>
-			<Anchor point="BOTTOM" relativeTo="GuiRoot" relativePoint="CENTER" offsetY="-136"/>
+		<TopLevelControl name="EggCounterUltimateDisplayGrid" mouseEnabled="true" movable="true" clampedToScreen="true">
+			<Dimensions x="472" y="272"/>
+			<Anchor point="CENTER" relativeTo="GuiRoot" relativePoint="CENTER" offsetX="-136" offsetY="-136"/>
 			<OnMoveStop>
 				EggCounter.OnMoveStop()
 			</OnMoveStop>
 			<Controls>
-				<Texture name="$(parent)Texture11" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture11" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT"/>
 				</Texture>
-				<Texture name="$(parent)Texture12" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture12" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture11" relativePoint="BOTTOMLEFT" offsetY="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture13" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture13" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture12" relativePoint="BOTTOMLEFT" offsetY="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture14" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture14" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture13" relativePoint="BOTTOMLEFT" offsetY="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture15" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture15" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture14" relativePoint="BOTTOMLEFT" offsetY="8"/>
 				</Texture>
-				<Label name="$(parent)Label11" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label11" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture11" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label12" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label12" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture12" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label13" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label13" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture13" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label14" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label14" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture14" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label15" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label15" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture15" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Texture name="$(parent)Texture21" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture21" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Label11" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture22" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture22" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Label12" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture23" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture23" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Label13" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture24" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture24" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Label14" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Texture>
-				<Texture name="$(parent)Texture25" textureFile = "esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+				<Texture name="$(parent)Texture25" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
 					<Dimensions x="48" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Label15" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Texture>
-				<Label name="$(parent)Label21" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label21" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture21" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label22" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label22" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture22" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label23" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label23" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture23" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label24" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label24" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture24" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
-				<Label name="$(parent)Label25" width="48" height="48" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+				<Label name="$(parent)Label25" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
 					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture25" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Texture name="$(parent)Texture31" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label21" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture32" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label22" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture33" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label23" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture34" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label24" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture35" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label25" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Label name="$(parent)Label31" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture31" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label32" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture32" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label33" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture33" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label34" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture34" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label35" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture35" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Texture name="$(parent)Texture41" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label31" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture42" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label32" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture43" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label33" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture44" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label34" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture45" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label35" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Label name="$(parent)Label41" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture41" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label42" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture42" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label43" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture43" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label44" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture44" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label45" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture45" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Texture name="$(parent)Texture51" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label41" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture52" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label42" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture53" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label43" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture54" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label44" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Texture name="$(parent)Texture55" textureFile="esoui/art/icons/ability_armor_003_b.dds" tier="HIGH">
+					<Dimensions x="48" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Label45" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Texture>
+				<Label name="$(parent)Label51" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture51" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label52" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture52" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label53" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture53" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label54" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture54" relativePoint="TOPRIGHT" offsetX="8"/>
+				</Label>
+				<Label name="$(parent)Label55" font="ZoFontWinH1" inheritAlpha="true" color="FFFFFF" wrapMode="TRUNCATE" verticalAlignment="CENTER" horizontalAlignment="CENTER" text="00">
+					<Dimensions x="32" y="48"/>
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Texture55" relativePoint="TOPRIGHT" offsetX="8"/>
 				</Label>
 			</Controls>
 		</TopLevelControl>

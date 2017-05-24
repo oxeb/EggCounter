@@ -1,6 +1,6 @@
 ## Title: Egg Counter
 ## Author: Gnevsyrom
-## APIVersion: 100018
+## APIVersion: 100019
 ## OptionalDependsOn: LibAddonMenu-2.0
 ## SavedVariables: EggCounterSavedVariables
 

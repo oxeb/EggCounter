@@ -2,14 +2,26 @@ local LibAddOnMenu2 = LibStub:GetLibrary("LibAddonMenu-2.0")
 
 EggCounter = {}
 EggCounter.name = "EggCounter"
+--This is used with saved variables in case their
+--format changes later
 EggCounter.version = 1
+--This is for LibAddOnMenu2 and is used
+--when creating the settings menu
 EggCounter.settingsName = "Egg Counter"
 EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
 EggCounter.settingsVersion = "0.0.1"
+--This is set to true at the end of initialization
+--The chat system is not ready prior to this and using
+--it will crash the addon
 EggCounter.chatSystemReady = false
-
-
+--Debug mode is toggled by typing /eggd
+--When it is enabled CHAT_CHANNEL_SAY works
+--in addition to CHAT_CHANNEL_PARTY
+EggCounter.debug = false
+EggCounter.debugCommand = "/eggd"
+--This is the ultimate status information for the
+--player running this addon only
 EggCounter.ultimateSlotNumber = 8
 EggCounter.ultimatePower = 0
 EggCounter.mainBarActive = true
@@ -19,11 +31,39 @@ EggCounter.mainBarUltimateReady = false
 EggCounter.backupBarUltimateName = ""
 EggCounter.backupBarUltimateCost = 0
 EggCounter.backupBarUltimateReady = false
+--This table converts ultimate names to
+--a 4 digit decimal string called the encoding
+--The different morphs of an ability all share one
+--encoding
+--There is also an encoding "0000" which
+--is intended to be absent from the table
 EggCounter.ultimateNameTable = {}
+--This table takes an encoding and stores static information
+--about the ultimate ability with that encoding
 EggCounter.ultimateEncodingTable = {}
+--This table contains the ultimate abilities in a specific
+--ordering and ensures that literals are not duplicated in the
+--source code
+--Duplicate literals do not take up additional memory because
+--of how lua works but they do introduce more points of failure
 EggCounter.ultimateDropdownMenuTable = nil
+--These are the ultimate display grid size constraints
+EggCounter.minimumUltimateDisplayGridHeight = 1
+EggCounter.maximumUltimateDisplayGridHeight = 5
+EggCounter.minimumUltimateDisplayGridWidth = 1
+EggCounter.maximumUltimateDisplayGridWidth = 5
+--This table is indexed by account display names and stores
+--that players current ultimate status
+--When in debug mode the state of this table is not
+--guaranteed to be coherent
 EggCounter.ultimateStatusTable = {}
+--This table stores the grid coordinates texures and labels
+--for the ultimate display grid
+--It is needed because they are declared in XML
 EggCounter.ultimateDisplayGridTable = {}
+--These are the default values for the settings panel
+--These measurements are in display units and not pixels
+--The font values are black magic that hurts my soul
 EggCounter.default = {
 	ultimateDisplayGridLeft = 128,
 	ultimateDisplayGridTop = 128,
@@ -31,35 +71,24 @@ EggCounter.default = {
 	ultimateDisplayGridLabelSize = 32,
 	ultimateDisplayGridFontSize = 5,
 	ultimateDisplayGridFont = "ZoFontWinH1",
-	ultimateDisplayGridWidth = 5,
-	ultimateDisplayGridHeight = 5,
+	ultimateDisplayGridWidth = EggCounter.maximumUltimateDisplayGridWidth,
+	ultimateDisplayGridHeight = EggCounter.maximumUltimateDisplayGridHeight,
 	utlimateDisplayGridTrackingTable = {},
 }
 
---################################################################################
-function b2s(x)
-	if x == true then
-		return "true"
-	elseif x == false then
-		return "false"
-	elseif x == nil then
-		return "nil"
-	else
-		return x
-	end
-end
-
-function d2s(x, y)
-	d(x .. " " .. b2s(y))
-end
---################################################################################
-
+--Display a formatted string in the chat window
+--This is different from a debug string made with d()
+--or a player message made with StartChatInput()
 function EggCounter:DisplayMessage(message)
 	if self.chatSystemReady then
 		CHAT_SYSTEM["containers"][1]["currentBuffer"]:AddMessage(message)
 	end
 end
 
+--Display a prompt automatically whenever ultimate status
+--changes in a significant way
+--This will only display messages if the ultimates exist in
+--the encoding table
 function EggCounter:DisplayPrompt(ultimateName, ultimateReady)
 	local encoding = self.ultimateNameTable[ultimateName]
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
@@ -71,6 +100,9 @@ function EggCounter:DisplayPrompt(ultimateName, ultimateReady)
 	end
 end
 
+--Detect the ultimate status and possibly display a prompt
+--If override is true then a prompt will be display regardless
+--of status changes
 function EggCounter:DetectUltimateStatus(override)
 	--Detect the current ultimate status
 	local ultimatePower, ultimatePowerMaximum, ultimatePowerEffectiveMaximum = GetUnitPower("player", POWERTYPE_ULTIMATE)
@@ -100,6 +132,7 @@ function EggCounter:DetectUltimateStatus(override)
 	end
 
 	--Display a prompt to the user if the ultimate status has changed
+	--or if override is true
 	if (mainBarUltimateName ~= self.mainBarUltimateName) or
 	(mainBarUltimateCost ~= self.mainBarUltimateCost) or
 	(mainBarUltimateReady ~= self.mainBarUltimateReady) or override then
@@ -122,11 +155,47 @@ function EggCounter:DetectUltimateStatus(override)
 	self.backupBarUltimateReady = backupBarUltimateReady
 end
 
+--These three functions handle events related to ultimate status
+--This function handles weapon bar swap events
+--This can be called from an event so it is a function and not a method
+--EVENT_ACTION_SLOTS_FULL_UPDATE (integer eventCode,boolean isHotbarSwap)
+function EggCounter.OnActionSlotsFullUpdate(eventCode, isHotBarSwap)
+	EggCounter:DetectUltimateStatus(false)
+end
+
+--This function handles individual ability slot events
+--This can be called from an event so it is a function and not a method
+--EVENT_ACTION_SLOT_UPDATED (integer eventCode,number slotNum)
+function EggCounter.OnActionSlotUpdated(eventCode, slot)
+	if slotNumber == EggCounter.ultimateSlotNumber then
+		EggCounter:DetectUltimateStatus(false)
+	end
+end
+
+--This function handles the player gaining or losing ultimate power
+--This can be called from an event so it is a function and not a method
+--EVENT_POWER_UPDATE (integer eventCode,string unitTag, number powerIndex, number powerType, number powerValue, number powerMax, number powerEffectiveMax)
+function EggCounter.OnPowerUpdate(eventCode, unitTag, powerIndex, powerType, powerValue, powerMaximum, powerEffectiveMaximum)
+	if powerType == POWERTYPE_ULTIMATE then
+		EggCounter:DetectUltimateStatus(false)
+	end
+end
+
+--This function handles the Detect binding under controls
+--This can be called from XML so it is a function and not a method
+function EggCounter.OnDetectBinding()
+	EggCounter:DetectUltimateStatus(true)
+end
+
+--Initialize static data for ultimates
+--This function exists to keep the code clean and
+--to avoid literal duplication
 function EggCounter:InitializeUltimate(encoding, morph1, morph2, morph3, name)
 	self.ultimateNameTable[morph1] = encoding
 	self.ultimateNameTable[morph2] = encoding
 	self.ultimateNameTable[morph3] = encoding
 	self.ultimateEncodingTable[encoding] = {}
+	--Yuck
 	if type(name) == "string" then
 		self.ultimateNameTable[name] = encoding
 		self.ultimateEncodingTable[encoding].name = name
@@ -136,12 +205,16 @@ function EggCounter:InitializeUltimate(encoding, morph1, morph2, morph3, name)
 	self.ultimateEncodingTable[encoding].textureFile = nil
 end
 
+--Set the texture file for a given ultimate encoding
+--This is a separate function for formatting reasons
 function EggCounter:SetUltimateTextureFile(encoding, textureFile)
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
 		self.ultimateEncodingTable[encoding].textureFile = textureFile
 	end
 end
 
+--Get the name of an ultimate from the encoding table to avoid
+--literal duplication
 function EggCounter:GetUltimateName(encoding)
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
 		return self.ultimateEncodingTable[encoding].name
@@ -149,6 +222,10 @@ function EggCounter:GetUltimateName(encoding)
 	return nil
 end
 
+--Initialize the table to index the XML controls with
+--a variable instead of directly
+--Populate the defaults for ultimate tracking here to avoid
+--literal duplication
 function EggCounter:InitializeUltimateDisplayGrid(index, x, y, texture, label, defaultEncoding)
 	self.ultimateDisplayGridTable[index] = {}
 	self.ultimateDisplayGridTable[index].x = x
@@ -161,7 +238,9 @@ function EggCounter:InitializeUltimateDisplayGrid(index, x, y, texture, label, d
 	self.default.utlimateDisplayGridTrackingTable[index].name = self:GetUltimateName(defaultEncoding)
 end
 
+--This function starts the addon
 function EggCounter:Initialize()
+	--Populate various tables
 	--Dragonknight
 	self:InitializeUltimate("0001",	"Dragonknight Standard",	"Shifting Standard",		"Standard of Might",		nil)				--1
 	self:InitializeUltimate("0002",	"Dragon Leap",				"Take Flight",				"Ferocious Leap",			nil)				--2
@@ -202,6 +281,7 @@ function EggCounter:Initialize()
 	self:InitializeUltimate("0131",	"War Horn",					"Aggressive Horn",			"Sturdy Horn",				nil)				--27
 	self:InitializeUltimate("0132",	"Barrier",					"Replenishing Barrier",		"Reviving Barrier",			nil)				--28
 
+	--Assign the texture information
 	self:SetUltimateTextureFile("0001", "esoui/art/icons/ability_dragonknight_006.dds")			--Dragonknight Standard
 	self:SetUltimateTextureFile("0002", "esoui/art/icons/ability_dragonknight_009.dds")			--Dragon Leap
 	self:SetUltimateTextureFile("0003", "esoui/art/icons/ability_dragonknight_018.dds")			--Magma Armor
@@ -231,8 +311,6 @@ function EggCounter:Initialize()
 	self:SetUltimateTextureFile("0131", "esoui/art/icons/ability_ava_003.dds")					--War Horn
 	self:SetUltimateTextureFile("0132", "esoui/art/icons/ability_ava_006.dds")					--Barrier
 
-	--This is done to ensure that the dropdown menus display ultimates
-	--in the proper order and that none of the names are mispelled
 	self.ultimateDropdownMenuTable = {
 		"None",
 		self:GetUltimateName("0001"),	self:GetUltimateName("0002"),	self:GetUltimateName("0003"),
@@ -247,8 +325,7 @@ function EggCounter:Initialize()
 		self:GetUltimateName("0131"),	self:GetUltimateName("0132"),
 	}
 
-	--This is done to avoid virtual controls and ensure none of the
-	--ultimate names are mispelled
+	--This is done to avoid virtual controls
 	self:InitializeUltimateDisplayGrid( 1, 1, 1, EggCounterUltimateDisplayGridTexture11, EggCounterUltimateDisplayGridLabel11, "0001")
 	self:InitializeUltimateDisplayGrid( 2, 1, 2, EggCounterUltimateDisplayGridTexture12, EggCounterUltimateDisplayGridLabel12, "0002")
 	self:InitializeUltimateDisplayGrid( 3, 1, 3, EggCounterUltimateDisplayGridTexture13, EggCounterUltimateDisplayGridLabel13, "0003")
@@ -275,70 +352,97 @@ function EggCounter:Initialize()
 	self:InitializeUltimateDisplayGrid(24, 5, 4, EggCounterUltimateDisplayGridTexture54, EggCounterUltimateDisplayGridLabel54, "0131")
 	self:InitializeUltimateDisplayGrid(25, 5, 5, EggCounterUltimateDisplayGridTexture55, EggCounterUltimateDisplayGridLabel55, "0132")
 
+	--Load saved variables and establish defaults
 	self.savedVariables = ZO_SavedVars:NewAccountWide("EggCounterSavedVariables", self.version, nil, self.default)
+	--Setup the ultimate display grid and unhide it
 	self:SetUltimateDisplayGridPosition()
 	self:FormatUltimateDisplayGrid()
-	self:FormatUltimateStatusGridLabels()
+	self:UpdateUltimateDisplayGridLabels()
 	EggCounterUltimateDisplayGrid:SetHidden(false)
-	
+	--Register events
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_ACTION_SLOTS_FULL_UPDATE, self.OnActionSlotsFullUpdate)
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_ACTION_SLOT_UPDATED, self.OnActionSlotUpdated)
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_POWER_UPDATE, self.OnPowerUpdate)
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_CHAT_MESSAGE_CHANNEL, self.OnChatMessageChannel)
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_GROUP_MEMBER_LEFT, self.OnGroupMemberLeft)
-
+	--Take an initial look at the player ultimate status
 	self:DetectUltimateStatus(true)
-
+	--Unregister this method so that it does not run twice
 	EVENT_MANAGER:UnregisterForEvent(self.name, EVENT_ADD_ON_LOADED)
+	--The chat system should now be safe to use
 	self.chatSystemReady = true
+	--Register the debug command
+	SLASH_COMMANDS[self.debugCommand] = EggCounter.ToggleDebug
+	--The last thing to do is turn on the settings panel
 	self:Settings()
 end
 
+--This function handles the init event
+--This can be called from an event so it is a function and not a method
+--EVENT_ADD_ON_LOADED (integer eventCode,string addonName)
+function EggCounter.OnAddOnLoaded(event, addOnName)
+	--Ensure that this event is actually for Egg Counter
+	if addOnName == EggCounter.name then
+		EggCounter:Initialize()
+	end
+end
+
+--Load the ultimate display grid coordinates
 function EggCounter:SetUltimateDisplayGridPosition()
 	local left = self.savedVariables.ultimateDisplayGridLeft
 	local top = self.savedVariables.ultimateDisplayGridTop
+	--If the anchors are not cleared none of this works at all
 	EggCounterUltimateDisplayGrid:ClearAnchors()
 	EggCounterUltimateDisplayGrid:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
 end
 
+--Save the ultimate display grid coordinates
 --This can be called from XML so it is a function and not a method
 function EggCounter.OnMoveStop()
 	EggCounter.savedVariables.ultimateDisplayGridLeft = EggCounterUltimateDisplayGrid:GetLeft()
 	EggCounter.savedVariables.ultimateDisplayGridTop = EggCounterUltimateDisplayGrid:GetTop()
 end
 
+--Convert an index intended for a custom grid size to
+--an index for the underlying grid
+--so that it can be used to index the XML controls
 function EggCounter:ConvertIndex(index, height)
 	local x = (math.floor((index - 1) / height)) + 1
 	local y = ((index - 1) % height) + 1
-	local i = y + ((x - 1) * 5)
+	local i = y + ((x - 1) * self.maximumUltimateDisplayGridHeight)
 	return i
 end
 
+--Force the ultimate display grid to match the saved
+--variables that determine its current configuration
 function EggCounter:FormatUltimateDisplayGrid()
 	local textureSize = self.savedVariables.ultimateDisplayGridTextureSize
 	local labelSize = self.savedVariables.ultimateDisplayGridLabelSize
 	local font = self.savedVariables.ultimateDisplayGridFont
 	local gridHeight = self.savedVariables.ultimateDisplayGridHeight
 	local gridWidth = self.savedVariables.ultimateDisplayGridWidth
+	local height =(textureSize * gridHeight) + ((gridHeight - 1) * 8)
+	local width = (textureSize * gridWidth) + (labelSize * gridWidth) + ((gridWidth - 1) * 8)
+	local total = gridHeight * gridWidth
+	--Resize every control
+	EggCounterUltimateDisplayGrid:SetDimensions(width, height)
 	for index in pairs(self.ultimateDisplayGridTable) do
 		self.ultimateDisplayGridTable[index].texture:SetDimensions(textureSize, textureSize)
-		--The second parameter SHOULD be textureSize
+		--The second parameter should be textureSize
 		self.ultimateDisplayGridTable[index].label:SetDimensions(labelSize, textureSize)
 		self.ultimateDisplayGridTable[index].label:SetFont(font)
 	end
-	for y = 1, 5, 1 do
-		for x = 1, 5, 1 do
-			local index = y + ((x - 1) * 5)
+	--Hide ultimates that are outside of the custom grid dimensions
+	for y = self.minimumUltimateDisplayGridHeight, self.maximumUltimateDisplayGridHeight, 1 do
+		for x = self.minimumUltimateDisplayGridWidth, self.maximumUltimateDisplayGridWidth, 1 do
+			local index = y + ((x - 1) * self.maximumUltimateDisplayGridHeight)
 			if (y > gridHeight) or (x > gridWidth) then
 				self.ultimateDisplayGridTable[index].texture:SetHidden(true)
 				self.ultimateDisplayGridTable[index].label:SetHidden(true)
 			end
 		end
 	end
-	local height =(textureSize * gridHeight) + ((gridHeight - 1) * 8)
-	local width = (textureSize * gridWidth) + (labelSize * gridWidth) + ((gridWidth - 1) * 8)
-	EggCounterUltimateDisplayGrid:SetDimensions(width, height)
-	local total = gridHeight * gridWidth
+	--Hide untracked ultimates and set textures for tracked ultimates
 	for index = 1, total, 1 do
 		local convertedIndex = self:ConvertIndex(index, gridHeight)
 		local visible = self.savedVariables.utlimateDisplayGridTrackingTable[index].visible
@@ -354,6 +458,36 @@ function EggCounter:FormatUltimateDisplayGrid()
 	end
 end
 
+--Change the labels in the ultimate display grid so that they
+--accurately reflect the content of the ultimate status table
+--for the current party
+function EggCounter:UpdateUltimateDisplayGridLabels()
+	local gridHeight = self.savedVariables.ultimateDisplayGridHeight
+	local gridWidth = self.savedVariables.ultimateDisplayGridWidth
+	local total = gridHeight * gridWidth
+	for index = 1, total, 1 do
+		local convertedIndex = self:ConvertIndex(index, gridHeight)
+		local visible = self.savedVariables.utlimateDisplayGridTrackingTable[index].visible
+		local encoding = self.savedVariables.utlimateDisplayGridTrackingTable[index].encoding
+		if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") and visible then
+			local count = 0
+			for account in pairs(self.ultimateStatusTable) do
+				local mainBarUltimateEncoding = self.ultimateStatusTable[account].mainBarUltimateEncoding
+				local mainBarUltimateReady = self.ultimateStatusTable[account].mainBarUltimateReady
+				local backupBarUltimateEncoding = self.ultimateStatusTable[account].backupBarUltimateEncoding
+				local backupBarUltimateReady = self.ultimateStatusTable[account].backupBarUltimateReady
+				if ((encoding == mainBarUltimateEncoding) and mainBarUltimateReady) or ((encoding == backupBarUltimateEncoding) and backupBarUltimateReady) then
+					count = count + 1
+				end
+			end
+			local text = "" .. count
+			self.ultimateDisplayGridTable[convertedIndex].label:SetText(text)
+		end
+	end
+end
+
+--The following series of functions all manipulate saved variables
+--and force a reformat of the ultimate display grid when they change
 function EggCounter:GetUltimateDisplayGridTextureSize()
 	return self.savedVariables.ultimateDisplayGridTextureSize
 end
@@ -378,9 +512,8 @@ end
 
 function EggCounter:SetUltimateDisplayGridFontSize(value)
 	self.savedVariables.ultimateDisplayGridFontSize = value
-
-	--Smaller values correspond to larger fonts, reverse this
-	--to be less confusing to the user
+	--Smaller values correspond to larger fonts
+	--Reverse this to be less confusing to the user
 	if value == 1 then
 		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH5"
 	elseif value == 2 then
@@ -430,6 +563,7 @@ function EggCounter:SetSettingsDropdownMenuValue(menuIndex, menuValue)
 	self:FormatUltimateDisplayGrid()
 end
 
+--menuIndex is captured each time this function is called
 function EggCounter:GenerateSettingsDropdownMenu(menuIndex, menuName, menuTooltip)
 	return {
 		type = "dropdown",
@@ -443,6 +577,7 @@ function EggCounter:GenerateSettingsDropdownMenu(menuIndex, menuName, menuToolti
 	}
 end
 
+--Generate the settings menu
 function EggCounter:Settings()
 	local settingsPanelData = {
 		type = "panel",
@@ -503,8 +638,8 @@ function EggCounter:Settings()
 			type = "slider",
 			name = "Grid Width",
 			tooltip = "",
-			min = 1,
-			max = 5,
+			min = self.minimumUltimateDisplayGridWidth,
+			max = self.maximumUltimateDisplayGridWidth,
 			step = 1,
 			getFunc = function() return EggCounter:GetUltimateDisplayGridWidth() end,
 			setFunc = function(value) EggCounter:SetUltimateDisplayGridWidth(value) end,
@@ -515,8 +650,8 @@ function EggCounter:Settings()
 			type = "slider",
 			name = "Grid Height",
 			tooltip = "",
-			min = 1,
-			max = 5,
+			min = self.minimumUltimateDisplayGridHeight,
+			max = self.maximumUltimateDisplayGridHeight,
 			step = 1,
 			getFunc = function() return EggCounter:GetUltimateDisplayGridHeight() end,
 			setFunc = function(value) EggCounter:SetUltimateDisplayGridHeight(value) end,
@@ -561,19 +696,78 @@ function EggCounter:Settings()
 	
 	--The first parameter to LibAddOnMenu2:RegisterAddonPanel and 
 	--LibAddOnMenu2:RegisterOptionControls must be the same unique
-	--string literal.  If the parameters are not such a literal then
-	--many variables go out of the global scope, and this breaks any
-	--interaction between this source file and the rest of the addon.
-	--I go to a dark place when I consider the implications of this.
+	--string literal
+	--If the parameters are not such a literal then many variables 
+	--go out of the global scope, and this breaks any interaction
+	--between this source file and the rest of the addon
+	--I go to a dark place when I consider the implications of this
 	local settingsPanelHandle = LibAddOnMenu2:RegisterAddonPanel("EggCounter_Gnevsyrom", settingsPanelData)
 	LibAddOnMenu2:RegisterOptionControls("EggCounter_Gnevsyrom", settingsPanelControlData)
 end
 
---This can be called from XML so it is a function and not a method
-function EggCounter.Detect()
-	EggCounter:DetectUltimateStatus(true)
+--Update the ultimate status table for a particular account
+function EggCounter:UpdateUltimateStatus(account, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
+	if self.ultimateStatusTable[account] == nil then
+		self.ultimateStatusTable[account] = {}
+	end
+	self.ultimateStatusTable[account].mainBarUltimateEncoding = mainBarUltimateEncoding
+	self.ultimateStatusTable[account].mainBarUltimateReady = mainBarUltimateReady
+	self.ultimateStatusTable[account].backupBarUltimateEncoding = backupBarUltimateEncoding
+	self.ultimateStatusTable[account].backupBarUltimateReady = backupBarUltimateReady
 end
 
+--Handle events caused by party members leaving by striking their records
+--from the ulitmate status table
+--This can be called from an event so it is a function and not a method
+--EVENT_GROUP_MEMBER_LEFT (integer eventCode,string memberCharacterName, number reason, boolean isLocalPlayer, boolean isLeader, string memberDisplayName, boolean actionRequiredVote)
+function EggCounter.OnGroupMemberLeft(eventCode, memberCharacterName, reason, isLocalPlayer, isLeader, memberDisplayName, actionRequiredVote)
+	EggCounter.ultimateStatusTable[memberDisplayName] = nil
+	EggCounter:UpdateUltimateDisplayGridLabels()
+end
+
+--This function handles the Reset binding under controls
+--This can be called from XML so it is a function and not a method
+function EggCounter.OnResetBinding()
+	for account in pairs(EggCounter.ultimateStatusTable) do
+		EggCounter.ultimateStatusTable[account] = nil
+	end
+	EggCounter:UpdateUltimateDisplayGridLabels()
+end
+
+--This function handles the debug slash command
+--It has some dumb easter eggs
+function EggCounter.ToggleDebug()
+	local account = GetDisplayName()
+	if (account == "@Woosters") or (account == "@SatuElisa") then
+		EggCounter.debug = not EggCounter.debug
+		if EggCounter.debug then
+			d("DEBUG MODE ON")
+		else
+			d("DEBUG MODE OFF")
+		end
+	else
+		d("YOU ARE UNWORTHY OF MY SECRETS")
+	end	
+	if account == "@AdenGrey" then
+		d("Fancy!")
+	elseif account =="@Bustincapps" then
+		d("Bustin you are a punk.")
+	elseif account == "@Herbatio" then
+		d("COCKSMOKER!!!")
+	elseif account == "@Nahz" then
+		d("Best guild member detected!")
+	elseif account =="@Pandoraaa" then
+		d("NOVA-BASIC 3.23")
+		d("(C) Copyright Novasoft 1983,1984,1985,1986,1987,1988")
+		d("60300 Bytes free")
+		d("Ok")
+	elseif account =="@SatuElisa" then
+		d("All hail the empress!")
+	end
+end
+
+--Generate a segment of a formatted report message for group chat
+--Each segment corresponds to one ultimate
 function EggCounter:GenerateReportMessage(ultimateName, ultimateReady)
 	local message = "0000f"
 	local encoding = self.ultimateNameTable[ultimateName]
@@ -587,46 +781,17 @@ function EggCounter:GenerateReportMessage(ultimateName, ultimateReady)
 	return message
 end
 
+--This function handles the Report binding under controls
 --This can be called from XML so it is a function and not a method
-function EggCounter.Report()
+function EggCounter.OnReportBinding()
 	local mainBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
 	local backupBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
+	--This ugly mess is here to avoid confusion with text from players
 	local message = "#@$?%" .. mainBarUltimateMessage .. "^" .. backupBarUltimateMessage
-	local chatChannelType = CHAT_CHANNEL_SAY
 	if IsUnitGrouped("player") then
-		chatChannelType = CHAT_CHANNEL_PARTY
-	end
-	StartChatInput(message, chatChannelType, nil)
-end
-
-function EggCounter.Reset()
-	for account in pairs(EggCounter.ultimateStatusTable) do
-		EggCounter.ultimateStatusTable[account] = nil
-	end
-	EggCounter:FormatUltimateStatusGridLabels()
-end
-
-
-
---This can be called from an event so it is a function and not a method
---EVENT_ACTION_SLOTS_FULL_UPDATE (integer eventCode,boolean isHotbarSwap)
-function EggCounter.OnActionSlotsFullUpdate(eventCode, isHotBarSwap)
-	EggCounter:DetectUltimateStatus(false)
-end
-
---This can be called from an event so it is a function and not a method
---EVENT_ACTION_SLOT_UPDATED (integer eventCode,number slotNum)
-function EggCounter.OnActionSlotUpdated(eventCode, slot)
-	if slotNumber == EggCounter.ultimateSlotNumber then
-		EggCounter:DetectUltimateStatus(false)
-	end
-end
-
---This can be called from an event so it is a function and not a method
---EVENT_POWER_UPDATE (integer eventCode,string unitTag, number powerIndex, number powerType, number powerValue, number powerMax, number powerEffectiveMax)
-function EggCounter.OnPowerUpdate(eventCode, unitTag, powerIndex, powerType, powerValue, powerMaximum, powerEffectiveMaximum)
-	if powerType == POWERTYPE_ULTIMATE then
-		EggCounter:DetectUltimateStatus(false)
+		StartChatInput(message, CHAT_CHANNEL_PARTY, nil)
+	elseif EggCounter.debug then
+		StartChatInput(message, CHAT_CHANNEL_SAY, nil)
 	end
 end
 
@@ -673,85 +838,23 @@ function EggCounter:DecodeBoolean(character)
 	return false
 end
 
-function EggCounter:FormatUltimateStatusGridLabels()
-	local gridHeight = self.savedVariables.ultimateDisplayGridHeight
-	local gridWidth = self.savedVariables.ultimateDisplayGridWidth
-	local total = gridHeight * gridWidth
-	for index = 1, total, 1 do
-		local convertedIndex = self:ConvertIndex(index, gridHeight)
-		local visible = self.savedVariables.utlimateDisplayGridTrackingTable[index].visible
-		local encoding = self.savedVariables.utlimateDisplayGridTrackingTable[index].encoding
-		if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") and visible then
-			local count = 0
-
-			for account in pairs(self.ultimateStatusTable) do
-				local mainBarUltimateEncoding = self.ultimateStatusTable[account].mainBarUltimateEncoding
-				local mainBarUltimateReady = self.ultimateStatusTable[account].mainBarUltimateReady
-				local backupBarUltimateEncoding = self.ultimateStatusTable[account].backupBarUltimateEncoding
-				local backupBarUltimateReady = self.ultimateStatusTable[account].backupBarUltimateReady
-				if ((encoding == mainBarUltimateEncoding) and mainBarUltimateReady) or ((encoding == backupBarUltimateEncoding) and backupBarUltimateReady) then
-					count = count + 1
-				end
-			end
-
-			local text = "" .. count
-
-			self.ultimateDisplayGridTable[convertedIndex].label:SetText(text)
-
-		end
-	end
-end
-
-function EggCounter:UpdateUltimateStatus(account, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
-	if self.ultimateStatusTable[account] == nil then
-		self.ultimateStatusTable[account] = {}
-	end
-	self.ultimateStatusTable[account].mainBarUltimateEncoding = mainBarUltimateEncoding
-	self.ultimateStatusTable[account].mainBarUltimateReady = mainBarUltimateReady
-	self.ultimateStatusTable[account].backupBarUltimateEncoding = backupBarUltimateEncoding
-	self.ultimateStatusTable[account].backupBarUltimateReady = backupBarUltimateReady
-end
-
+--Handle the event caused whenever a new chat message appears
 --This can be called from an event so it is a function and not a method
 --EVENT_CHAT_MESSAGE_CHANNEL (integer eventCode,number channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
 function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text, isCustomerService, fromDisplayName)
 	local messageLength = string.len(text)
-	if ((channelType == CHAT_CHANNEL_SAY) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (messageLength == 16) then
+	if (((channelType == CHAT_CHANNEL_SAY) and EggCounter.debug) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (messageLength == 16) then
 		if EggCounter:ValidateMessage(text) then
 			local mainBarUltimateEncoding = string.sub(text, 6, 9)
 			local mainBarUltimateReady = EggCounter:DecodeBoolean(string.byte(text, 10))
 			local backupBarUltimateEncoding = string.sub(text, 12, 15)
 			local backupBarUltimateReady = EggCounter:DecodeBoolean(string.byte(text, 16))
-			--d2s("fromDisplayName = ", fromDisplayName)
-			--d2s("mainBarUltimateEncoding = ", mainBarUltimateEncoding)
-			--d2s("mainBarUltimateReady = ", mainBarUltimateReady)
-			--d2s("backupBarUltimateEncoding = ", backupBarUltimateEncoding)
-			--d2s("backupBarUltimateReady = ", backupBarUltimateReady)
-			
-			--EggCounterUltimateDisplayGridLabel:SetText(mainBarUltimateEncoding)
-
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
-			EggCounter:FormatUltimateStatusGridLabels()
+			EggCounter:UpdateUltimateDisplayGridLabels()
 
 		end
 	end
 end
 
---This can be called from an event so it is a function and not a method
---EVENT_GROUP_MEMBER_LEFT (integer eventCode,string memberCharacterName, number reason, boolean isLocalPlayer, boolean isLeader, string memberDisplayName, boolean actionRequiredVote)
-function EggCounter.OnGroupMemberLeft(eventCode, memberCharacterName, reason, isLocalPlayer, isLeader, memberDisplayName, actionRequiredVote)
-	EggCounter.ultimateStatusTable[memberDisplayName] = nil
-	EggCounter:FormatUltimateStatusGridLabels()
-end
-
---This can be called from an event so it is a function and not a method
---EVENT_ADD_ON_LOADED (integer eventCode,string addonName)
-function EggCounter.OnAddOnLoaded(event, addOnName)
-	
-	--Ensure that this event is actually for Egg Counter
-	if addOnName == EggCounter.name then
-		EggCounter:Initialize()
-	end
-end
-
+--This is the last line to ensure that all symbols are declared when it excutes
 EVENT_MANAGER:RegisterForEvent(EggCounter.name, EVENT_ADD_ON_LOADED, EggCounter.OnAddOnLoaded)

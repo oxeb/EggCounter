@@ -2,13 +2,13 @@
 	<Layer name="SI_KEYBINDINGS_CATEGORY_GENERAL">
 		<Category name="EGGCOUNTER_BINDING_CATEGORY_TITLE">
 			<Action name="EGGCOUNTER_DETECT">
-				<Down>EggCounter.Detect()</Down>
+				<Down>EggCounter.OnDetectBinding()</Down>
 			</Action>
 			<Action name="EGGCOUNTER_REPORT">
-				<Down>EggCounter.Report()</Down>
+				<Down>EggCounter.OnReportBinding()</Down>
 			</Action>
 			<Action name="EGGCOUNTER_RESET">
-				<Down>EggCounter.Reset()</Down>
+				<Down>EggCounter.OnResetBinding()</Down>
 			</Action>
 		</Category>
 	</Layer>

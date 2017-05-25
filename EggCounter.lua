@@ -2,13 +2,14 @@ local LibAddOnMenu2 = LibStub:GetLibrary("LibAddonMenu-2.0")
 
 EggCounter = {}
 EggCounter.name = "EggCounter"
+EggCounter.version = 1
 EggCounter.settingsName = "Egg Counter"
 EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
 EggCounter.settingsVersion = "0.0.1"
+EggCounter.chatSystemReady = false
 --EggCounter.chatChannelType = CHAT_CHANNEL_PARTY
 EggCounter.chatChannelType = CHAT_CHANNEL_SAY
-EggCounter.chatSystemReady = false
 EggCounter.ultimateSlotNumber = 8
 EggCounter.ultimatePower = 0
 EggCounter.mainBarActive = true
@@ -22,23 +23,17 @@ EggCounter.ultimateNameTable = {}
 EggCounter.ultimateEncodingTable = {}
 EggCounter.ultimateDropdownMenuTable = nil
 EggCounter.ultimateStatusTable = {}
-
---EggCounter.indicatorLabelTable = {}
---EggCounter.indicatorTextureTable = {}
-
-EggCounter.ultimateDisplayGridTextureTable = {}
-EggCounter.ultimateDisplayGridLabelTable = {}
-
-EggCounter.indicatorStatusTable = {}
-
 EggCounter.ultimateDisplayGridTable = {}
-
-EggCounter.version = 1
 EggCounter.default = {
-	left = 100,
-	top = 100,
+	ultimateDisplayGridLeft = 128,
+	ultimateDisplayGridTop = 128,
+	ultimateDisplayGridTextureSize = 48,
+	ultimateDisplayGridLabelSize = 32,
 	ultimateDisplayGridFontSize = 5,
 	ultimateDisplayGridFont = "ZoFontWinH1",
+	ultimateDisplayGridWidth = 5,
+	ultimateDisplayGridHeight = 5,
+	utlimateDisplayGridTrackingTable = {},
 }
 
 --################################################################################
@@ -66,16 +61,10 @@ function EggCounter:DisplayMessage(message)
 end
 
 function EggCounter:DisplayPrompt(ultimateName, ultimateReady)
-	local encoding = self.ultimateNameTable[ultimateName]
-	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
-		local track = self.ultimateEncodingTable[encoding].track
-		if track then
-			if ultimateReady then
-				self:DisplayMessage(ultimateName .. " is ready.")
-			else
-				self:DisplayMessage(ultimateName .. " is not ready.")
-			end
-		end
+	if ultimateReady then
+		self:DisplayMessage(ultimateName .. " is ready.")
+	else
+		self:DisplayMessage(ultimateName .. " is not ready.")
 	end
 end
 
@@ -135,25 +124,18 @@ function EggCounter:InitializeUltimate(encoding, morph1, morph2, morph3, name)
 	self.ultimateNameTable[morph2] = encoding
 	self.ultimateNameTable[morph3] = encoding
 	self.ultimateEncodingTable[encoding] = {}
-	self.ultimateEncodingTable[encoding].encoding = encoding
 	if type(name) == "string" then
+		self.ultimateNameTable[name] = encoding
 		self.ultimateEncodingTable[encoding].name = name
 	else
 		self.ultimateEncodingTable[encoding].name = morph1
 	end
-	self.ultimateEncodingTable[encoding].track = false
-	self.ultimateEncodingTable[encoding].texture = nil
+	self.ultimateEncodingTable[encoding].textureFile = nil
 end
 
-function EggCounter:TrackUltimate(encoding)
+function EggCounter:SetUltimateTextureFile(encoding, textureFile)
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
-		self.ultimateEncodingTable[encoding].track = true
-	end
-end
-
-function EggCounter:SetUltimateTexture(encoding, texture)
-	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
-		self.ultimateEncodingTable[encoding].texture = texture
+		self.ultimateEncodingTable[encoding].textureFile = textureFile
 	end
 end
 
@@ -164,12 +146,16 @@ function EggCounter:GetUltimateName(encoding)
 	return nil
 end
 
-function EggCounter:InitializeUltimateDisplayGrid(index, x, y, texture, label)
+function EggCounter:InitializeUltimateDisplayGrid(index, x, y, texture, label, defaultEncoding)
 	self.ultimateDisplayGridTable[index] = {}
 	self.ultimateDisplayGridTable[index].x = x
 	self.ultimateDisplayGridTable[index].y = y
 	self.ultimateDisplayGridTable[index].texture = texture
 	self.ultimateDisplayGridTable[index].label = label
+	self.default.utlimateDisplayGridTrackingTable[index] = {}
+	self.default.utlimateDisplayGridTrackingTable[index].visible = true
+	self.default.utlimateDisplayGridTrackingTable[index].encoding = defaultEncoding
+	self.default.utlimateDisplayGridTrackingTable[index].name = self:GetUltimateName(defaultEncoding)
 end
 
 function EggCounter:Initialize()
@@ -213,44 +199,37 @@ function EggCounter:Initialize()
 	self:InitializeUltimate("0131",	"War Horn",					"Aggressive Horn",			"Sturdy Horn",				nil)				--27
 	self:InitializeUltimate("0132",	"Barrier",					"Replenishing Barrier",		"Reviving Barrier",			nil)				--28
 
-	self:TrackUltimate("0001")	--Dragonknight Standard
-	self:TrackUltimate("0022")	--Negate Magic
-	self:TrackUltimate("0105")	--Elemental Storm
-	self:TrackUltimate("0121")	--Dawnbreaker
-	self:TrackUltimate("0122")	--Meteor
+	self:SetUltimateTextureFile("0001", "esoui/art/icons/ability_dragonknight_006.dds")			--Dragonknight Standard
+	self:SetUltimateTextureFile("0002", "esoui/art/icons/ability_dragonknight_009.dds")			--Dragon Leap
+	self:SetUltimateTextureFile("0003", "esoui/art/icons/ability_dragonknight_018.dds")			--Magma Armor
+	self:SetUltimateTextureFile("0011", "esoui/art/icons/ability_nightblade_007.dds")			--Death Stroke
+	self:SetUltimateTextureFile("0012", "esoui/art/icons/ability_nightblade_015.dds")			--Consuming Darkness
+	self:SetUltimateTextureFile("0013", "esoui/art/icons/ability_nightblade_018.dds")			--Soul Shred
+	self:SetUltimateTextureFile("0021", "esoui/art/icons/ability_sorcerer_storm_atronach.dds")	--Summon Storm Atronach
+	self:SetUltimateTextureFile("0022", "esoui/art/icons/ability_sorcerer_monsoon.dds")			--Negate Magic
+	self:SetUltimateTextureFile("0023", "esoui/art/icons/ability_sorcerer_overload.dds")		--Overload
+	self:SetUltimateTextureFile("0031", "esoui/art/icons/ability_templar_radial_sweep.dds")		--Radial Sweep
+	self:SetUltimateTextureFile("0032", "esoui/art/icons/ability_templar_nova.dds")				--Nova
+	self:SetUltimateTextureFile("0033", "esoui/art/icons/ability_templar_rite_of_passage.dds")	--Rite of Passage
+	self:SetUltimateTextureFile("0041", "esoui/art/icons/ability_warden_012.dds")				--Secluded Grove
+	self:SetUltimateTextureFile("0042", "esoui/art/icons/ability_warden_018.dds")				--Feral Guardian
+	self:SetUltimateTextureFile("0043", "esoui/art/icons/ability_warden_006.dds")				--Sleet Storm
+	self:SetUltimateTextureFile("0101", "esoui/art/icons/ability_2handed_006.dds")				--Berserker Strike
+	self:SetUltimateTextureFile("0102", "esoui/art/icons/ability_1handed_006.dds")				--Shield Wall
+	self:SetUltimateTextureFile("0103", "esoui/art/icons/ability_dualwield_006.dds")			--Lacerate
+	self:SetUltimateTextureFile("0104", "esoui/art/icons/ability_bow_006.dds")					--Rapid Fire
+	self:SetUltimateTextureFile("0105", "esoui/art/icons/ability_destructionstaff_012.dds")		--Elemental Storm
+	self:SetUltimateTextureFile("0106", "esoui/art/icons/ability_restorationstaff_006.dds")		--Panacea
+	self:SetUltimateTextureFile("0111", "esoui/art/icons/ability_otherclass_002.dds")			--Soul Strike
+	self:SetUltimateTextureFile("0112", "esoui/art/icons/ability_vampire_001.dds")				--Bat Swarm
+	self:SetUltimateTextureFile("0113", "esoui/art/icons/ability_werewolf_001.dds")				--Werewolf Transformation
+	self:SetUltimateTextureFile("0121", "esoui/art/icons/ability_fightersguild_005.dds")		--Dawnbreaker
+	self:SetUltimateTextureFile("0122", "esoui/art/icons/ability_mageguild_005.dds")			--Meteor
+	self:SetUltimateTextureFile("0131", "esoui/art/icons/ability_ava_003.dds")					--War Horn
+	self:SetUltimateTextureFile("0132", "esoui/art/icons/ability_ava_006.dds")					--Barrier
 
-	self:SetUltimateTexture("0001", "esoui/art/icons/ability_dragonknight_006.dds")			--Dragonknight Standard
-	self:SetUltimateTexture("0002", "esoui/art/icons/ability_dragonknight_009.dds")			--Dragon Leap
-	self:SetUltimateTexture("0003", "esoui/art/icons/ability_dragonknight_018.dds")			--Magma Armor
-	self:SetUltimateTexture("0011", "esoui/art/icons/ability_nightblade_007.dds")			--Death Stroke
-	self:SetUltimateTexture("0012", "esoui/art/icons/ability_nightblade_015.dds")			--Consuming Darkness
-	self:SetUltimateTexture("0013", "esoui/art/icons/ability_nightblade_018.dds")			--Soul Shred
-	self:SetUltimateTexture("0021", "esoui/art/icons/ability_sorcerer_storm_atronach.dds")	--Summon Storm Atronach
-	self:SetUltimateTexture("0022", "esoui/art/icons/ability_sorcerer_monsoon.dds")			--Negate Magic
-	self:SetUltimateTexture("0023", "esoui/art/icons/ability_sorcerer_overload.dds")		--Overload
-	self:SetUltimateTexture("0031", "esoui/art/icons/ability_templar_radial_sweep.dds")		--Radial Sweep
-	self:SetUltimateTexture("0032", "esoui/art/icons/ability_templar_nova.dds")				--Nova
-	self:SetUltimateTexture("0033", "esoui/art/icons/ability_templar_rite_of_passage.dds")	--Rite of Passage
-	self:SetUltimateTexture("0041", "esoui/art/icons/ability_warden_012.dds")				--Secluded Grove
-	self:SetUltimateTexture("0042", "esoui/art/icons/ability_warden_018.dds")				--Feral Guardian
-	self:SetUltimateTexture("0043", "esoui/art/icons/ability_warden_006.dds")				--Sleet Storm
-	self:SetUltimateTexture("0101", "esoui/art/icons/ability_2handed_006.dds")				--Berserker Strike
-	self:SetUltimateTexture("0102", "esoui/art/icons/ability_1handed_006.dds")				--Shield Wall
-	self:SetUltimateTexture("0103", "esoui/art/icons/ability_dualwield_006.dds")			--Lacerate
-	self:SetUltimateTexture("0104", "esoui/art/icons/ability_bow_006.dds")					--Rapid Fire
-	self:SetUltimateTexture("0105", "esoui/art/icons/ability_destructionstaff_012.dds")		--Elemental Storm
-	self:SetUltimateTexture("0106", "esoui/art/icons/ability_restorationstaff_006.dds")		--Panacea
-	self:SetUltimateTexture("0111", "esoui/art/icons/ability_otherclass_002.dds")			--Soul Strike
-	self:SetUltimateTexture("0112", "esoui/art/icons/ability_vampire_001.dds")				--Bat Swarm
-	self:SetUltimateTexture("0113", "esoui/art/icons/ability_werewolf_001.dds")				--Werewolf Transformation
-	self:SetUltimateTexture("0121", "esoui/art/icons/ability_fightersguild_005.dds")		--Dawnbreaker
-	self:SetUltimateTexture("0122", "esoui/art/icons/ability_mageguild_005.dds")			--Meteor
-	self:SetUltimateTexture("0131", "esoui/art/icons/ability_ava_003.dds")					--War Horn
-	self:SetUltimateTexture("0132", "esoui/art/icons/ability_ava_006.dds")					--Barrier
-
-	--This is a contrived attempt to ensure that no ultimate name
-	--is mispelled and that ultimates are listed in my personal
-	--order in dropdown menus.
+	--This is done to ensure that the dropdown menus display ultimates
+	--in the proper order and that none of the names are mispelled
 	self.ultimateDropdownMenuTable = {
 		"None",
 		self:GetUltimateName("0001"),	self:GetUltimateName("0002"),	self:GetUltimateName("0003"),
@@ -265,56 +244,38 @@ function EggCounter:Initialize()
 		self:GetUltimateName("0131"),	self:GetUltimateName("0132"),
 	}
 
+	--This is done to avoid virtual controls and ensure none of the
+	--ultimate names are mispelled
+	self:InitializeUltimateDisplayGrid( 1, 1, 1, EggCounterUltimateDisplayGridTexture11, EggCounterUltimateDisplayGridLabel11, "0001")
+	self:InitializeUltimateDisplayGrid( 2, 1, 2, EggCounterUltimateDisplayGridTexture12, EggCounterUltimateDisplayGridLabel12, "0002")
+	self:InitializeUltimateDisplayGrid( 3, 1, 3, EggCounterUltimateDisplayGridTexture13, EggCounterUltimateDisplayGridLabel13, "0003")
+	self:InitializeUltimateDisplayGrid( 4, 1, 4, EggCounterUltimateDisplayGridTexture14, EggCounterUltimateDisplayGridLabel14, "0101")
+	self:InitializeUltimateDisplayGrid( 5, 1, 5, EggCounterUltimateDisplayGridTexture15, EggCounterUltimateDisplayGridLabel15, "0102")
+	self:InitializeUltimateDisplayGrid( 6, 2, 1, EggCounterUltimateDisplayGridTexture21, EggCounterUltimateDisplayGridLabel21, "0011")
+	self:InitializeUltimateDisplayGrid( 7, 2, 2, EggCounterUltimateDisplayGridTexture22, EggCounterUltimateDisplayGridLabel22, "0012")
+	self:InitializeUltimateDisplayGrid( 8, 2, 3, EggCounterUltimateDisplayGridTexture23, EggCounterUltimateDisplayGridLabel23, "0013")
+	self:InitializeUltimateDisplayGrid( 9, 2, 4, EggCounterUltimateDisplayGridTexture24, EggCounterUltimateDisplayGridLabel24, "0103")
+	self:InitializeUltimateDisplayGrid(10, 2, 5, EggCounterUltimateDisplayGridTexture25, EggCounterUltimateDisplayGridLabel25, "0104")
+	self:InitializeUltimateDisplayGrid(11, 3, 1, EggCounterUltimateDisplayGridTexture31, EggCounterUltimateDisplayGridLabel31, "0021")
+	self:InitializeUltimateDisplayGrid(12, 3, 2, EggCounterUltimateDisplayGridTexture32, EggCounterUltimateDisplayGridLabel32, "0022")
+	self:InitializeUltimateDisplayGrid(13, 3, 3, EggCounterUltimateDisplayGridTexture33, EggCounterUltimateDisplayGridLabel33, "0023")
+	self:InitializeUltimateDisplayGrid(14, 3, 4, EggCounterUltimateDisplayGridTexture34, EggCounterUltimateDisplayGridLabel34, "0105")
+	self:InitializeUltimateDisplayGrid(15, 3, 5, EggCounterUltimateDisplayGridTexture35, EggCounterUltimateDisplayGridLabel35, "0106")
+	self:InitializeUltimateDisplayGrid(16, 4, 1, EggCounterUltimateDisplayGridTexture41, EggCounterUltimateDisplayGridLabel41, "0031")
+	self:InitializeUltimateDisplayGrid(17, 4, 2, EggCounterUltimateDisplayGridTexture42, EggCounterUltimateDisplayGridLabel42, "0032")
+	self:InitializeUltimateDisplayGrid(18, 4, 3, EggCounterUltimateDisplayGridTexture43, EggCounterUltimateDisplayGridLabel43, "0033")
+	self:InitializeUltimateDisplayGrid(19, 4, 4, EggCounterUltimateDisplayGridTexture44, EggCounterUltimateDisplayGridLabel44, "0121")
+	self:InitializeUltimateDisplayGrid(20, 4, 5, EggCounterUltimateDisplayGridTexture45, EggCounterUltimateDisplayGridLabel45, "0122")
+	self:InitializeUltimateDisplayGrid(21, 5, 1, EggCounterUltimateDisplayGridTexture51, EggCounterUltimateDisplayGridLabel51, "0041")
+	self:InitializeUltimateDisplayGrid(22, 5, 2, EggCounterUltimateDisplayGridTexture52, EggCounterUltimateDisplayGridLabel52, "0042")
+	self:InitializeUltimateDisplayGrid(23, 5, 3, EggCounterUltimateDisplayGridTexture53, EggCounterUltimateDisplayGridLabel53, "0043")
+	self:InitializeUltimateDisplayGrid(24, 5, 4, EggCounterUltimateDisplayGridTexture54, EggCounterUltimateDisplayGridLabel54, "0131")
+	self:InitializeUltimateDisplayGrid(25, 5, 5, EggCounterUltimateDisplayGridTexture55, EggCounterUltimateDisplayGridLabel55, "0132")
 
-	--This is gross and error prone, but it avoids the usage of virtual
-	--controls and there are only 25 lines.
-	self:InitializeUltimateDisplayGrid( 1, 1, 1, EggCounterUltimateDisplayGridTexture11, EggCounterUltimateDisplayGridLabel11)
-	self:InitializeUltimateDisplayGrid( 2, 1, 2, EggCounterUltimateDisplayGridTexture12, EggCounterUltimateDisplayGridLabel12)
-	self:InitializeUltimateDisplayGrid( 3, 1, 3, EggCounterUltimateDisplayGridTexture13, EggCounterUltimateDisplayGridLabel13)
-	self:InitializeUltimateDisplayGrid( 4, 1, 4, EggCounterUltimateDisplayGridTexture14, EggCounterUltimateDisplayGridLabel14)
-	self:InitializeUltimateDisplayGrid( 5, 1, 5, EggCounterUltimateDisplayGridTexture15, EggCounterUltimateDisplayGridLabel15)
-	self:InitializeUltimateDisplayGrid( 6, 2, 1, EggCounterUltimateDisplayGridTexture21, EggCounterUltimateDisplayGridLabel21)
-	self:InitializeUltimateDisplayGrid( 7, 2, 2, EggCounterUltimateDisplayGridTexture22, EggCounterUltimateDisplayGridLabel22)
-	self:InitializeUltimateDisplayGrid( 8, 2, 3, EggCounterUltimateDisplayGridTexture23, EggCounterUltimateDisplayGridLabel23)
-	self:InitializeUltimateDisplayGrid( 9, 2, 4, EggCounterUltimateDisplayGridTexture24, EggCounterUltimateDisplayGridLabel24)
-	self:InitializeUltimateDisplayGrid(10, 2, 5, EggCounterUltimateDisplayGridTexture25, EggCounterUltimateDisplayGridLabel25)
-	self:InitializeUltimateDisplayGrid(11, 3, 1, EggCounterUltimateDisplayGridTexture31, EggCounterUltimateDisplayGridLabel31)
-	self:InitializeUltimateDisplayGrid(12, 3, 2, EggCounterUltimateDisplayGridTexture32, EggCounterUltimateDisplayGridLabel32)
-	self:InitializeUltimateDisplayGrid(13, 3, 3, EggCounterUltimateDisplayGridTexture33, EggCounterUltimateDisplayGridLabel33)
-	self:InitializeUltimateDisplayGrid(14, 3, 4, EggCounterUltimateDisplayGridTexture34, EggCounterUltimateDisplayGridLabel34)
-	self:InitializeUltimateDisplayGrid(15, 3, 5, EggCounterUltimateDisplayGridTexture35, EggCounterUltimateDisplayGridLabel35)
-	self:InitializeUltimateDisplayGrid(16, 4, 1, EggCounterUltimateDisplayGridTexture41, EggCounterUltimateDisplayGridLabel41)
-	self:InitializeUltimateDisplayGrid(17, 4, 2, EggCounterUltimateDisplayGridTexture42, EggCounterUltimateDisplayGridLabel42)
-	self:InitializeUltimateDisplayGrid(18, 4, 3, EggCounterUltimateDisplayGridTexture43, EggCounterUltimateDisplayGridLabel43)
-	self:InitializeUltimateDisplayGrid(19, 4, 4, EggCounterUltimateDisplayGridTexture44, EggCounterUltimateDisplayGridLabel44)
-	self:InitializeUltimateDisplayGrid(20, 4, 5, EggCounterUltimateDisplayGridTexture45, EggCounterUltimateDisplayGridLabel45)
-	self:InitializeUltimateDisplayGrid(21, 5, 1, EggCounterUltimateDisplayGridTexture51, EggCounterUltimateDisplayGridLabel51)
-	self:InitializeUltimateDisplayGrid(22, 5, 2, EggCounterUltimateDisplayGridTexture52, EggCounterUltimateDisplayGridLabel52)
-	self:InitializeUltimateDisplayGrid(23, 5, 3, EggCounterUltimateDisplayGridTexture53, EggCounterUltimateDisplayGridLabel53)
-	self:InitializeUltimateDisplayGrid(24, 5, 4, EggCounterUltimateDisplayGridTexture54, EggCounterUltimateDisplayGridLabel54)
-	self:InitializeUltimateDisplayGrid(25, 5, 5, EggCounterUltimateDisplayGridTexture55, EggCounterUltimateDisplayGridLabel55)
-
-	for key in pairs(self.ultimateDisplayGridTable) do
-		local text = "" .. key
-		if key < 10 then
-			text = "0" .. text
-		end
-		self.ultimateDisplayGridTable[key].label:SetText(text)
-	end
-
-
-
-
-	
-
-
-
-	
-	EggCounterUltimateDisplayGrid:SetHidden(false)
-
-	--Fetch the saved variables from their file
 	self.savedVariables = ZO_SavedVars:NewAccountWide("EggCounterSavedVariables", self.version, nil, self.default)
-	self:LoadIndicatorPosition()
+	self:SetUltimateDisplayGridPosition()
+	self:FormatUltimateDisplayGrid()
+	EggCounterUltimateDisplayGrid:SetHidden(false)
 	
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_ACTION_SLOTS_FULL_UPDATE, self.OnActionSlotsFullUpdate)
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_ACTION_SLOT_UPDATED, self.OnActionSlotUpdated)
@@ -324,55 +285,92 @@ function EggCounter:Initialize()
 
 	self:DetectUltimateStatus(true)
 
-	--End this horrible nightmare!
 	EVENT_MANAGER:UnregisterForEvent(self.name, EVENT_ADD_ON_LOADED)
-
 	self.chatSystemReady = true
-
 	self:Settings()
 end
 
-function EggCounter:GetSettingsDropdownMenuValue(menuNumber)
-	d2s("menuNumber = ", menuNumber)
-	d2s("menuValue = ", "None")
-	return "None"
+function EggCounter:SetUltimateDisplayGridPosition()
+	local left = self.savedVariables.ultimateDisplayGridLeft
+	local top = self.savedVariables.ultimateDisplayGridTop
+	EggCounterUltimateDisplayGrid:ClearAnchors()
+	EggCounterUltimateDisplayGrid:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
 end
 
-function EggCounter:SetSettingsDropdownMenuValue(menuNumber, menuValue)
-	d2s("menuNumber = ", menuNumber)
-	d2s("menuValue = ", menuValue)
+--This can be called from XML so it is a function and not a method
+function EggCounter.OnMoveStop()
+	EggCounter.savedVariables.ultimateDisplayGridLeft = EggCounterUltimateDisplayGrid:GetLeft()
+	EggCounter.savedVariables.ultimateDisplayGridTop = EggCounterUltimateDisplayGrid:GetTop()
 end
 
-function EggCounter:GenerateSettingsDropdownMenu(menuNumber, menuName, menuTooltip, menuDefault)
-	return {
-		type = "dropdown",
-		name = menuName,
-		tooltip = menuTooltip,
-		choices = self.ultimateDropdownMenuTable,
-		default = menuDefault,
-		getFunc = function() return EggCounter:GetSettingsDropdownMenuValue(menuNumber) end,
-		setFunc = function(menuValue) EggCounter:SetSettingsDropdownMenuValue(menuNumber, menuValue) end,
-		width = "full",
-	}
+function EggCounter:ConvertIndex(index, height)
+	local x = (math.floor((index - 1) / height)) + 1
+	local y = ((index - 1) % height) + 1
+	local i = y + ((x - 1) * 5)
+	return i
 end
 
---[[
-	ultimateDisplayGridX
-	ultimateDisplayGridY
-	ultimateDisplayGridWidth
-	ultimateDisplayGridHeight
-	ultimateDisplayGridFont
-	track1 .. track 10
-]]
+function EggCounter:FormatUltimateDisplayGrid()
+	local textureSize = self.savedVariables.ultimateDisplayGridTextureSize
+	local labelSize = self.savedVariables.ultimateDisplayGridLabelSize
+	local font = self.savedVariables.ultimateDisplayGridFont
+	local gridHeight = self.savedVariables.ultimateDisplayGridHeight
+	local gridWidth = self.savedVariables.ultimateDisplayGridWidth
+	for index in pairs(self.ultimateDisplayGridTable) do
+		self.ultimateDisplayGridTable[index].texture:SetDimensions(textureSize, textureSize)
+		--The second parameter SHOULD be textureSize
+		self.ultimateDisplayGridTable[index].label:SetDimensions(labelSize, textureSize)
+		self.ultimateDisplayGridTable[index].label:SetFont(font)
+	end
+	for y = 1, 5, 1 do
+		for x = 1, 5, 1 do
+			local index = y + ((x - 1) * 5)
+			if (y > gridHeight) or (x > gridWidth) then
+				self.ultimateDisplayGridTable[index].texture:SetHidden(true)
+				self.ultimateDisplayGridTable[index].label:SetHidden(true)
+			end
+		end
+	end
+	local height =(textureSize * gridHeight) + ((gridHeight - 1) * 8)
+	local width = (textureSize * gridWidth) + (labelSize * gridWidth) + ((gridWidth - 1) * 8)
+	EggCounterUltimateDisplayGrid:SetDimensions(width, height)
+	local total = gridHeight * gridWidth
+	for index = 1, total, 1 do
+		local convertedIndex = self:ConvertIndex(index, gridHeight)
+		local visible = self.savedVariables.utlimateDisplayGridTrackingTable[index].visible
+		local encoding = self.savedVariables.utlimateDisplayGridTrackingTable[index].encoding
+		if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") and visible then
+			self.ultimateDisplayGridTable[convertedIndex].texture:SetHidden(false)
+			self.ultimateDisplayGridTable[convertedIndex].label:SetHidden(false)
+			self.ultimateDisplayGridTable[convertedIndex].texture:SetTexture(self.ultimateEncodingTable[encoding].textureFile)
+		else
+			self.ultimateDisplayGridTable[convertedIndex].texture:SetHidden(true)
+			self.ultimateDisplayGridTable[convertedIndex].label:SetHidden(true)
+		end
+	end
+end
+
+function EggCounter:GetUltimateDisplayGridTextureSize()
+	return self.savedVariables.ultimateDisplayGridTextureSize
+end
+
+function EggCounter:SetUltimateDisplayGridTextureSize(value)
+	self.savedVariables.ultimateDisplayGridTextureSize = value
+	self:FormatUltimateDisplayGrid()
+end
+
+function EggCounter:GetUltimateDisplayGridLabelSize()
+	return self.savedVariables.ultimateDisplayGridLabelSize
+end
+
+function EggCounter:SetUltimateDisplayGridLabelSize(value)
+	self.savedVariables.ultimateDisplayGridLabelSize = value
+	self:FormatUltimateDisplayGrid()
+end
 
 function EggCounter:GetUltimateDisplayGridFontSize()
 	return self.savedVariables.ultimateDisplayGridFontSize
 end
-
---552, 480
---1080 Y=1:1
---1920 X=1.7777~:1
-
 
 function EggCounter:SetUltimateDisplayGridFontSize(value)
 	self.savedVariables.ultimateDisplayGridFontSize = value
@@ -390,9 +388,55 @@ function EggCounter:SetUltimateDisplayGridFontSize(value)
 	else
 		self.savedVariables.ultimateDisplayGridFont = "ZoFontWinH1"
 	end
-	for key in pairs(self.indicatorLabelTable) do
-		self.indicatorLabelTable[key]:SetFont(self.savedVariables.ultimateDisplayGridFont)
+	self:FormatUltimateDisplayGrid()
+end
+
+function EggCounter:GetUltimateDisplayGridWidth()
+	return self.savedVariables.ultimateDisplayGridWidth
+end
+
+function EggCounter:SetUltimateDisplayGridWidth(value)
+	self.savedVariables.ultimateDisplayGridWidth = value
+	self:FormatUltimateDisplayGrid()
+end
+
+function EggCounter:GetUltimateDisplayGridHeight()
+	return self.savedVariables.ultimateDisplayGridHeight
+end
+
+function EggCounter:SetUltimateDisplayGridHeight(value)
+	self.savedVariables.ultimateDisplayGridHeight = value
+	self:FormatUltimateDisplayGrid()
+end
+
+function EggCounter:GetSettingsDropdownMenuValue(menuIndex)
+	return self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].name
+end
+
+function EggCounter:SetSettingsDropdownMenuValue(menuIndex, menuValue)
+	self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].name = menuValue
+	local encoding = self.ultimateNameTable[menuValue]
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].visible = true
+		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].encoding = encoding
+	else
+		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].visible = false
+		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].encoding = "0000"
 	end
+	self:FormatUltimateDisplayGrid()
+end
+
+function EggCounter:GenerateSettingsDropdownMenu(menuIndex, menuName, menuTooltip)
+	return {
+		type = "dropdown",
+		name = menuName,
+		tooltip = menuTooltip,
+		choices = self.ultimateDropdownMenuTable,
+		getFunc = function() return EggCounter:GetSettingsDropdownMenuValue(menuIndex) end,
+		setFunc = function(menuValue) EggCounter:SetSettingsDropdownMenuValue(menuIndex, menuValue) end,
+		width = "full",
+		default = self.default.utlimateDisplayGridTrackingTable[menuIndex].name,
+	}
 end
 
 function EggCounter:Settings()
@@ -413,9 +457,33 @@ function EggCounter:Settings()
 		},
 		[2] = {
 			type = "description",
-			text = "Adjust the size and scale of the Ultimate Display Grid"
+			text = "Adjust the size and shape of the Ultimate Display Grid"
 		},
 		[3] = {
+			type = "slider",
+			name = "Texture Size",
+			tooltip = "",
+			min = 32,
+			max = 128,
+			step = 1,
+			getFunc = function() return EggCounter:GetUltimateDisplayGridTextureSize() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridTextureSize(value) end,
+			width = "full",
+			default = self.default.ultimateDisplayGridTextureSize,
+		},
+		[4] = {
+			type = "slider",
+			name = "Label Size",
+			tooltip = "",
+			min = 24,
+			max = 128,
+			step = 1,
+			getFunc = function() return EggCounter:GetUltimateDisplayGridLabelSize() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridLabelSize(value) end,
+			width = "full",
+			default = self.default.ultimateDisplayGridLabelSize,
+		},
+		[5] = {
 			type = "slider",
 			name = "Font Size",
 			tooltip = "",
@@ -425,54 +493,66 @@ function EggCounter:Settings()
 			getFunc = function() return EggCounter:GetUltimateDisplayGridFontSize() end,
 			setFunc = function(value) EggCounter:SetUltimateDisplayGridFontSize(value) end,
 			width = "full",
-		},
-		[4] = {
-			type = "slider",
-			name = "Interface Scale in Pixels",
-			tooltip = "Adjust the size of the icons and text in the Ultimate Display Grid",
-			min = 32,
-			max = 128,
-			step = 1,
-			getFunc = function() return 48 end,
-			setFunc = function(value) d2s("slider value = ", value) end,
-			width = "full",
-			default = "48",
-		},
-		[5] = {
-			type = "slider",
-			name = "Ultimate Display Grid Width",
-			tooltip = "",
-			min = 1,
-			max = 5,
-			step = 1,
-			getFunc = function() return 2 end,
-			setFunc = function(value) end,
-			width = "full",
-			default = "3",
+			default = self.default.ultimateDisplayGridFontSize,
 		},
 		[6] = {
 			type = "slider",
-			name = "Ultimate Display Grid Height",
+			name = "Grid Width",
 			tooltip = "",
 			min = 1,
 			max = 5,
 			step = 1,
-			getFunc = function() return 2 end,
-			setFunc = function(value) end,
+			getFunc = function() return EggCounter:GetUltimateDisplayGridWidth() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridWidth(value) end,
 			width = "full",
-			default = "3",
+			default = self.default.ultimateDisplayGridWidth,
 		},
 		[7] = {
+			type = "slider",
+			name = "Grid Height",
+			tooltip = "",
+			min = 1,
+			max = 5,
+			step = 1,
+			getFunc = function() return EggCounter:GetUltimateDisplayGridHeight() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridHeight(value) end,
+			width = "full",
+			default = self.default.ultimateDisplayGridHeight,
+		},
+		[8] = {
 			type = "header",
 			name = "Ultimate Tracking Settings",
 			
 		},
-		[8] = {
+		[9] = {
 			type = "description",
 			text = "Select which ultimate abilities to track with the Ultimate Display Grid"
 		},
-		[9] = self:GenerateSettingsDropdownMenu(1, "Alpha", "Beta"),
-		[10] = self:GenerateSettingsDropdownMenu(2, "Gamma", "Delta"),
+		[10] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
+		[11] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
+		[12] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
+		[13] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
+		[14] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
+		[15] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
+		[16] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
+		[17] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
+		[18] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
+		[19] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
+		[20] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
+		[21] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
+		[22] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
+		[23] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
+		[24] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
+		[25] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
+		[26] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
+		[27] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
+		[28] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
+		[29] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
+		[30] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
+		[31] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
+		[32] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
+		[33] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
+		[34] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
 	}
 	
 	--The first parameter to LibAddOnMenu2:RegisterAddonPanel and 
@@ -512,6 +592,7 @@ function EggCounter.Report()
 end
 
 function EggCounter.Reset()
+	--[[
 	local za = EggCounterUltimateDisplayGrid:GetScale()
 	local x1,y1,x2,y2 = EggCounterUltimateDisplayGrid:GetScreenRect()
 
@@ -527,25 +608,14 @@ function EggCounter.Reset()
 	d2s("y2 = ", y2)
 
 	d2s("lx11 = ", lx11)
-	d2s("ly11 = ", ly11)
+	d2s("ly11 = ", ly11) ]]
+
+		local jj = EggCounter:Conv(4,3)
+		d2s("jj = ", jj)
+
 end
 
---Load the top and left coordinates of the indicator from a file when
---the addon first starts
-function EggCounter:LoadIndicatorPosition()
-	--local left = self.savedVariables.left
-	--local top = self.savedVariables.top
-	--EggCounterUltimateDisplayGrid:ClearAnchors()
-	--EggCounterUltimateDisplayGrid:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
-end
 
---Save the top and left coordinates of the indicator to a file whenever it 
---moves so that the position is preserved across multiple play sessions
---This can be called from XML so it is a function and not a method
-function EggCounter.OnMoveStop()
-	--EggCounter.savedVariables.left = EggCounterUltimateDisplayGrid:GetLeft()
-	--EggCounter.savedVariables.top = EggCounterUltimateDisplayGrid:GetTop()
-end
 
 --This can be called from an event so it is a function and not a method
 --EVENT_ACTION_SLOTS_FULL_UPDATE (integer eventCode,boolean isHotbarSwap)
@@ -610,11 +680,6 @@ function EggCounter:DecodeBoolean(character)
 		return true
 	end
 	return false
-end
-
-function EggCounter.Slash(message)
-	--d(message)
-	--EggCounterUltimateDisplayGridTexture:SetTexture(message)
 end
 
 --This can be called from an event so it is a function and not a method

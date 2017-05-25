@@ -8,8 +8,8 @@ EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
 EggCounter.settingsVersion = "0.0.1"
 EggCounter.chatSystemReady = false
---EggCounter.chatChannelType = CHAT_CHANNEL_PARTY
-EggCounter.chatChannelType = CHAT_CHANNEL_SAY
+
+
 EggCounter.ultimateSlotNumber = 8
 EggCounter.ultimatePower = 0
 EggCounter.mainBarActive = true
@@ -61,10 +61,13 @@ function EggCounter:DisplayMessage(message)
 end
 
 function EggCounter:DisplayPrompt(ultimateName, ultimateReady)
-	if ultimateReady then
-		self:DisplayMessage(ultimateName .. " is ready.")
-	else
-		self:DisplayMessage(ultimateName .. " is not ready.")
+	local encoding = self.ultimateNameTable[ultimateName]
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		if ultimateReady then
+			self:DisplayMessage(ultimateName .. " is ready.")
+		else
+			self:DisplayMessage(ultimateName .. " is not ready.")
+		end
 	end
 end
 
@@ -275,6 +278,7 @@ function EggCounter:Initialize()
 	self.savedVariables = ZO_SavedVars:NewAccountWide("EggCounterSavedVariables", self.version, nil, self.default)
 	self:SetUltimateDisplayGridPosition()
 	self:FormatUltimateDisplayGrid()
+	self:FormatUltimateStatusGridLabels()
 	EggCounterUltimateDisplayGrid:SetHidden(false)
 	
 	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_ACTION_SLOTS_FULL_UPDATE, self.OnActionSlotsFullUpdate)
@@ -588,31 +592,18 @@ function EggCounter.Report()
 	local mainBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
 	local backupBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
 	local message = "#@$?%" .. mainBarUltimateMessage .. "^" .. backupBarUltimateMessage
-	StartChatInput(message, EggCounter.chatChannelType, nil)
+	local chatChannelType = CHAT_CHANNEL_SAY
+	if IsUnitGrouped("player") then
+		chatChannelType = CHAT_CHANNEL_PARTY
+	end
+	StartChatInput(message, chatChannelType, nil)
 end
 
 function EggCounter.Reset()
-	--[[
-	local za = EggCounterUltimateDisplayGrid:GetScale()
-	local x1,y1,x2,y2 = EggCounterUltimateDisplayGrid:GetScreenRect()
-
-	EggCounterUltimateDisplayGrid:ClearAnchors()
-	EggCounterUltimateDisplayGrid:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, 100, 100)
-
-	lx11, ly11 = EggCounterUltimateDisplayGridLabel11:GetDimensions()
-
-
-	d2s("x1 = ", x1)
-	d2s("y1 = ", y1)
-	d2s("x2 = ", x2)
-	d2s("y2 = ", y2)
-
-	d2s("lx11 = ", lx11)
-	d2s("ly11 = ", ly11) ]]
-
-		local jj = EggCounter:Conv(4,3)
-		d2s("jj = ", jj)
-
+	for account in pairs(EggCounter.ultimateStatusTable) do
+		EggCounter.ultimateStatusTable[account] = nil
+	end
+	EggCounter:FormatUltimateStatusGridLabels()
 end
 
 
@@ -682,23 +673,66 @@ function EggCounter:DecodeBoolean(character)
 	return false
 end
 
+function EggCounter:FormatUltimateStatusGridLabels()
+	local gridHeight = self.savedVariables.ultimateDisplayGridHeight
+	local gridWidth = self.savedVariables.ultimateDisplayGridWidth
+	local total = gridHeight * gridWidth
+	for index = 1, total, 1 do
+		local convertedIndex = self:ConvertIndex(index, gridHeight)
+		local visible = self.savedVariables.utlimateDisplayGridTrackingTable[index].visible
+		local encoding = self.savedVariables.utlimateDisplayGridTrackingTable[index].encoding
+		if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") and visible then
+			local count = 0
+
+			for account in pairs(self.ultimateStatusTable) do
+				local mainBarUltimateEncoding = self.ultimateStatusTable[account].mainBarUltimateEncoding
+				local mainBarUltimateReady = self.ultimateStatusTable[account].mainBarUltimateReady
+				local backupBarUltimateEncoding = self.ultimateStatusTable[account].backupBarUltimateEncoding
+				local backupBarUltimateReady = self.ultimateStatusTable[account].backupBarUltimateReady
+				if ((encoding == mainBarUltimateEncoding) and mainBarUltimateReady) or ((encoding == backupBarUltimateEncoding) and backupBarUltimateReady) then
+					count = count + 1
+				end
+			end
+
+			local text = "" .. count
+
+			self.ultimateDisplayGridTable[convertedIndex].label:SetText(text)
+
+		end
+	end
+end
+
+function EggCounter:UpdateUltimateStatus(account, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
+	if self.ultimateStatusTable[account] == nil then
+		self.ultimateStatusTable[account] = {}
+	end
+	self.ultimateStatusTable[account].mainBarUltimateEncoding = mainBarUltimateEncoding
+	self.ultimateStatusTable[account].mainBarUltimateReady = mainBarUltimateReady
+	self.ultimateStatusTable[account].backupBarUltimateEncoding = backupBarUltimateEncoding
+	self.ultimateStatusTable[account].backupBarUltimateReady = backupBarUltimateReady
+end
+
 --This can be called from an event so it is a function and not a method
 --EVENT_CHAT_MESSAGE_CHANNEL (integer eventCode,number channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
 function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text, isCustomerService, fromDisplayName)
 	local messageLength = string.len(text)
-	if (channelType == EggCounter.chatChannelType) and (not isCustomerService) and (messageLength == 16) then
+	if ((channelType == CHAT_CHANNEL_SAY) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (messageLength == 16) then
 		if EggCounter:ValidateMessage(text) then
 			local mainBarUltimateEncoding = string.sub(text, 6, 9)
 			local mainBarUltimateReady = EggCounter:DecodeBoolean(string.byte(text, 10))
 			local backupBarUltimateEncoding = string.sub(text, 12, 15)
 			local backupBarUltimateReady = EggCounter:DecodeBoolean(string.byte(text, 16))
-			d2s("fromDisplayName = ", fromDisplayName)
-			d2s("mainBarUltimateEncoding = ", mainBarUltimateEncoding)
-			d2s("mainBarUltimateReady = ", mainBarUltimateReady)
-			d2s("backupBarUltimateEncoding = ", backupBarUltimateEncoding)
-			d2s("backupBarUltimateReady = ", backupBarUltimateReady)
+			--d2s("fromDisplayName = ", fromDisplayName)
+			--d2s("mainBarUltimateEncoding = ", mainBarUltimateEncoding)
+			--d2s("mainBarUltimateReady = ", mainBarUltimateReady)
+			--d2s("backupBarUltimateEncoding = ", backupBarUltimateEncoding)
+			--d2s("backupBarUltimateReady = ", backupBarUltimateReady)
 			
 			--EggCounterUltimateDisplayGridLabel:SetText(mainBarUltimateEncoding)
+
+			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
+			EggCounter:FormatUltimateStatusGridLabels()
+
 		end
 	end
 end
@@ -706,7 +740,8 @@ end
 --This can be called from an event so it is a function and not a method
 --EVENT_GROUP_MEMBER_LEFT (integer eventCode,string memberCharacterName, number reason, boolean isLocalPlayer, boolean isLeader, string memberDisplayName, boolean actionRequiredVote)
 function EggCounter.OnGroupMemberLeft(eventCode, memberCharacterName, reason, isLocalPlayer, isLeader, memberDisplayName, actionRequiredVote)
-	d2s("memberDisplayName = ", memberDisplayName)
+	EggCounter.ultimateStatusTable[memberDisplayName] = nil
+	EggCounter:FormatUltimateStatusGridLabels()
 end
 
 --This can be called from an event so it is a function and not a method

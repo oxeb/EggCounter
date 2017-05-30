@@ -37,7 +37,9 @@ EggCounter.backupBarUltimateReady = false
 --encoding
 --There is also an encoding "0000" which
 --is intended to be absent from the table
+EggCounter.ultimateDropdownNamePrefix = ""
 EggCounter.ultimateNameTable = {}
+EggCounter.ultimateDropdownNameTable = {}
 --This table takes an encoding and stores static information
 --about the ultimate ability with that encoding
 EggCounter.ultimateEncodingTable = {}
@@ -67,6 +69,8 @@ EggCounter.ultimateDisplayGridTable = {}
 EggCounter.default = {
 	ultimateDisplayGridLeft = 128,
 	ultimateDisplayGridTop = 128,
+	ultimateDisplayGridVisibility = "Visible",
+	ultimateDisplayGridOpacity = 45,
 	ultimateDisplayGridTextureSize = 48,
 	ultimateDisplayGridLabelSize = 32,
 	ultimateDisplayGridFontSize = 5,
@@ -187,6 +191,10 @@ function EggCounter.OnDetectBinding()
 	EggCounter:DetectUltimateStatus(true)
 end
 
+function EggCounter:SetUltimateDropdownNamePrefix(prefix)
+	self.ultimateDropdownNamePrefix = prefix
+end
+
 --Initialize static data for ultimates
 --This function exists to keep the code clean and
 --to avoid literal duplication
@@ -196,12 +204,17 @@ function EggCounter:InitializeUltimate(encoding, morph1, morph2, morph3, name)
 	self.ultimateNameTable[morph3] = encoding
 	self.ultimateEncodingTable[encoding] = {}
 	--Yuck
+	local suffix = name
 	if type(name) == "string" then
 		self.ultimateNameTable[name] = encoding
 		self.ultimateEncodingTable[encoding].name = name
 	else
 		self.ultimateEncodingTable[encoding].name = morph1
+		suffix = morph1
 	end
+	local dropdownName = self.ultimateDropdownNamePrefix .. " - " .. suffix
+	self.ultimateDropdownNameTable[dropdownName] = encoding
+	self.ultimateEncodingTable[encoding].dropdownName = dropdownName
 	self.ultimateEncodingTable[encoding].textureFile = nil
 end
 
@@ -222,6 +235,13 @@ function EggCounter:GetUltimateName(encoding)
 	return nil
 end
 
+function EggCounter:GetUltimateDropdownName(encoding)
+	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
+		return self.ultimateEncodingTable[encoding].dropdownName
+	end
+	return nil
+end
+
 --Initialize the table to index the XML controls with
 --a variable instead of directly
 --Populate the defaults for ultimate tracking here to avoid
@@ -235,33 +255,39 @@ function EggCounter:InitializeUltimateDisplayGrid(index, x, y, texture, label, d
 	self.default.utlimateDisplayGridTrackingTable[index] = {}
 	self.default.utlimateDisplayGridTrackingTable[index].visible = true
 	self.default.utlimateDisplayGridTrackingTable[index].encoding = defaultEncoding
-	self.default.utlimateDisplayGridTrackingTable[index].name = self:GetUltimateName(defaultEncoding)
+	self.default.utlimateDisplayGridTrackingTable[index].dropdownName = self:GetUltimateDropdownName(defaultEncoding)
 end
 
 --This function starts the addon
 function EggCounter:Initialize()
 	--Populate various tables
 	--Dragonknight
+	self:SetUltimateDropdownNamePrefix("Dragonknight")
 	self:InitializeUltimate("0001",	"Dragonknight Standard",	"Shifting Standard",		"Standard of Might",		nil)				--1
 	self:InitializeUltimate("0002",	"Dragon Leap",				"Take Flight",				"Ferocious Leap",			nil)				--2
 	self:InitializeUltimate("0003",	"Magma Armor",				"Magma Shell",				"Corrosive Armor",			nil)				--3
 	--Nightblade
+	self:SetUltimateDropdownNamePrefix("Nightblade")
 	self:InitializeUltimate("0011",	"Death Stroke",				"Incapacitating Strike",	"Soul Harvest",				nil)				--4
 	self:InitializeUltimate("0012",	"Consuming Darkness",		"Bolstering Darkness",		"Veil of Blades",			nil)				--5
 	self:InitializeUltimate("0013",	"Soul Shred",				"Soul Siphon",				"Soul Tether",				nil)				--6
 	--Sorcerer
+	self:SetUltimateDropdownNamePrefix("Sorcerer")
 	self:InitializeUltimate("0021",	"Summon Storm Atronach",	"Greater Storm Atronach",	"Summon Charged Atronach",	nil)				--7
 	self:InitializeUltimate("0022",	"Negate Magic",				"Suppresion Field",			"Absorption Field",			nil)				--8
 	self:InitializeUltimate("0023",	"Overload",					"Energy Overload",			"Power Overload",			nil)				--9
 	--Templar													BURNING REMEMBRANCE!!!
+	self:SetUltimateDropdownNamePrefix("Templar")
 	self:InitializeUltimate("0031",	"Radial Sweep",				"Empowering Sweep",			"Crescent Sweep",			nil)				--10
 	self:InitializeUltimate("0032",	"Nova",						"Solar Disturbance",		"Solar Prison",				nil)				--11
 	self:InitializeUltimate("0033",	"Rite of Passage",			"Remembrance",				"Practised Incantation",	nil)				--12
 	--Warden
+	self:SetUltimateDropdownNamePrefix("Warden")
 	self:InitializeUltimate("0041",	"Secluded Grove",			"Enchanted Forest",			"Healing Thicket",			nil)				--13
 	self:InitializeUltimate("0042",	"Feral Guardian",			"Eternal Guardian",			"Wild Guardian",			nil)				--14
 	self:InitializeUltimate("0043",	"Sleet Storm",				"Northern Storm",			"Permafrost",				nil)				--15
 	--Weapons
+	self:SetUltimateDropdownNamePrefix("Weapon")
 	self:InitializeUltimate("0101",	"Berserker Strike",			"Onslaught",				"Berserker Rage",			nil)				--16
 	self:InitializeUltimate("0102",	"Shield Wall",				"Spell Wall",				"Shield Discipline",		nil)				--17
 	self:InitializeUltimate("0103",	"Lacerate",					"Rend",						"Thrive in Chaos",			nil)				--18
@@ -271,13 +297,16 @@ function EggCounter:Initialize()
 	self:InitializeUltimate("0105",	"Ice Storm",				"Icy Rage",					"Eye of Frost",				"Elemental Storm")	--20
 	self:InitializeUltimate("0106",	"Panacea",					"Life Giver",				"Light's Champion",			nil)				--21
 	--World
+	self:SetUltimateDropdownNamePrefix("World")
 	self:InitializeUltimate("0111",	"Soul Strike",				"Soul Assault",				"Shatter Soul",				nil)				--22
 	self:InitializeUltimate("0112",	"Bat Swarm",				"Clouding Swarm",			"Devouring Swarm",			nil)				--23
 	self:InitializeUltimate("0113",	"Werewolf Transformation",	"Pack Leader",				"Werewolf Berserker",		nil)				--24
 	--Guild
+	self:SetUltimateDropdownNamePrefix("Guild")
 	self:InitializeUltimate("0121",	"Dawnbreaker",				"Flawless Dawnbreaker",		"Dawnbreaker of Smiting",	nil)				--25
 	self:InitializeUltimate("0122",	"Meteor",					"Ice Comet",				"Shooting Star",			nil)				--26
 	--Alliance War
+	self:SetUltimateDropdownNamePrefix("Alliance War")
 	self:InitializeUltimate("0131",	"War Horn",					"Aggressive Horn",			"Sturdy Horn",				nil)				--27
 	self:InitializeUltimate("0132",	"Barrier",					"Replenishing Barrier",		"Reviving Barrier",			nil)				--28
 
@@ -313,16 +342,16 @@ function EggCounter:Initialize()
 
 	self.ultimateDropdownMenuTable = {
 		"None",
-		self:GetUltimateName("0001"),	self:GetUltimateName("0002"),	self:GetUltimateName("0003"),
-		self:GetUltimateName("0011"),	self:GetUltimateName("0012"),	self:GetUltimateName("0013"),
-		self:GetUltimateName("0021"),	self:GetUltimateName("0022"),	self:GetUltimateName("0023"),
-		self:GetUltimateName("0031"),	self:GetUltimateName("0032"),	self:GetUltimateName("0033"),
-		self:GetUltimateName("0041"),	self:GetUltimateName("0042"),	self:GetUltimateName("0043"),
-		self:GetUltimateName("0101"),	self:GetUltimateName("0102"),	self:GetUltimateName("0103"),
-		self:GetUltimateName("0104"),	self:GetUltimateName("0105"),	self:GetUltimateName("0106"),
-		self:GetUltimateName("0111"),	self:GetUltimateName("0112"),	self:GetUltimateName("0113"),
-		self:GetUltimateName("0121"),	self:GetUltimateName("0122"),
-		self:GetUltimateName("0131"),	self:GetUltimateName("0132"),
+		self:GetUltimateDropdownName("0001"),	self:GetUltimateDropdownName("0002"),	self:GetUltimateDropdownName("0003"),
+		self:GetUltimateDropdownName("0011"),	self:GetUltimateDropdownName("0012"),	self:GetUltimateDropdownName("0013"),
+		self:GetUltimateDropdownName("0021"),	self:GetUltimateDropdownName("0022"),	self:GetUltimateDropdownName("0023"),
+		self:GetUltimateDropdownName("0031"),	self:GetUltimateDropdownName("0032"),	self:GetUltimateDropdownName("0033"),
+		self:GetUltimateDropdownName("0041"),	self:GetUltimateDropdownName("0042"),	self:GetUltimateDropdownName("0043"),
+		self:GetUltimateDropdownName("0101"),	self:GetUltimateDropdownName("0102"),	self:GetUltimateDropdownName("0103"),
+		self:GetUltimateDropdownName("0104"),	self:GetUltimateDropdownName("0105"),	self:GetUltimateDropdownName("0106"),
+		self:GetUltimateDropdownName("0111"),	self:GetUltimateDropdownName("0112"),	self:GetUltimateDropdownName("0113"),
+		self:GetUltimateDropdownName("0121"),	self:GetUltimateDropdownName("0122"),
+		self:GetUltimateDropdownName("0131"),	self:GetUltimateDropdownName("0132"),
 	}
 
 	--This is done to avoid virtual controls
@@ -421,11 +450,20 @@ function EggCounter:FormatUltimateDisplayGrid()
 	local font = self.savedVariables.ultimateDisplayGridFont
 	local gridHeight = self.savedVariables.ultimateDisplayGridHeight
 	local gridWidth = self.savedVariables.ultimateDisplayGridWidth
-	local height =(textureSize * gridHeight) + ((gridHeight - 1) * 8)
-	local width = (textureSize * gridWidth) + (labelSize * gridWidth) + ((gridWidth - 1) * 8)
+	local height =(textureSize * gridHeight) + ((gridHeight + 1) * 8)
+	local width = (textureSize * gridWidth) + (labelSize * gridWidth) + (((gridWidth * 2) + 1) * 8)
 	local total = gridHeight * gridWidth
+	--Handle visibility and opacity
+	if self.savedVariables.ultimateDisplayGridVisibility == "Visible" then
+		EggCounterUltimateDisplayGrid:SetHidden(false)
+	else
+		EggCounterUltimateDisplayGrid:SetHidden(true)
+		return
+	end
+	EggCounterUltimateDisplayGrid:SetAlpha(self.savedVariables.ultimateDisplayGridOpacity / 100)
 	--Resize every control
 	EggCounterUltimateDisplayGrid:SetDimensions(width, height)
+	EggCounterUltimateDisplayGridBackdrop:SetDimensions(width, height)
 	for index in pairs(self.ultimateDisplayGridTable) do
 		self.ultimateDisplayGridTable[index].texture:SetDimensions(textureSize, textureSize)
 		--The second parameter should be textureSize
@@ -488,6 +526,24 @@ end
 
 --The following series of functions all manipulate saved variables
 --and force a reformat of the ultimate display grid when they change
+function EggCounter:GetUltimateDisplayGridVisibility()
+	return self.savedVariables.ultimateDisplayGridVisibility
+end
+
+function EggCounter:SetUltimateDisplayGridVisibility(value)
+	self.savedVariables.ultimateDisplayGridVisibility = value
+	self:FormatUltimateDisplayGrid()
+end
+
+function EggCounter:GetUltimateDisplayGridOpacity()
+	return self.savedVariables.ultimateDisplayGridOpacity
+end
+
+function EggCounter:SetUltimateDisplayGridOpacity(value)
+	self.savedVariables.ultimateDisplayGridOpacity = value
+	self:FormatUltimateDisplayGrid()
+end
+
 function EggCounter:GetUltimateDisplayGridTextureSize()
 	return self.savedVariables.ultimateDisplayGridTextureSize
 end
@@ -547,12 +603,12 @@ function EggCounter:SetUltimateDisplayGridHeight(value)
 end
 
 function EggCounter:GetSettingsDropdownMenuValue(menuIndex)
-	return self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].name
+	return self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].dropdownName
 end
 
 function EggCounter:SetSettingsDropdownMenuValue(menuIndex, menuValue)
-	self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].name = menuValue
-	local encoding = self.ultimateNameTable[menuValue]
+	self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].dropdownName = menuValue
+	local encoding = self.ultimateDropdownNameTable[menuValue]
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
 		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].visible = true
 		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].encoding = encoding
@@ -573,7 +629,7 @@ function EggCounter:GenerateSettingsDropdownMenu(menuIndex, menuName, menuToolti
 		getFunc = function() return EggCounter:GetSettingsDropdownMenuValue(menuIndex) end,
 		setFunc = function(menuValue) EggCounter:SetSettingsDropdownMenuValue(menuIndex, menuValue) end,
 		width = "full",
-		default = self.default.utlimateDisplayGridTrackingTable[menuIndex].name,
+		default = self.default.utlimateDisplayGridTrackingTable[menuIndex].dropdownName,
 	}
 end
 
@@ -599,6 +655,28 @@ function EggCounter:Settings()
 			text = "Adjust the size and shape of the Ultimate Display Grid"
 		},
 		[3] = {
+			type = "dropdown",
+			name = "Visibility",
+			tooltip = "",
+			choices = {"Visible", "Hidden", },
+			getFunc = function() return EggCounter:GetUltimateDisplayGridVisibility() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridVisibility(value) end,
+			width = "full",
+			default = self.default.ultimateDisplayGridVisibility,
+		},
+		[4] = {
+			type = "slider",
+			name = "Opacity",
+			tooltip = "",
+			min = 0,
+			max = 100,
+			step = 1,
+			getFunc = function() return EggCounter:GetUltimateDisplayGridOpacity() end,
+			setFunc = function(value) EggCounter:SetUltimateDisplayGridOpacity(value) end,
+			width = "full",
+			default = self.default.ultimateDisplayGridOpacity,
+		},
+		[5] = {
 			type = "slider",
 			name = "Texture Size",
 			tooltip = "",
@@ -610,7 +688,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridTextureSize,
 		},
-		[4] = {
+		[6] = {
 			type = "slider",
 			name = "Label Size",
 			tooltip = "",
@@ -622,7 +700,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridLabelSize,
 		},
-		[5] = {
+		[7] = {
 			type = "slider",
 			name = "Font Size",
 			tooltip = "",
@@ -634,7 +712,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridFontSize,
 		},
-		[6] = {
+		[8] = {
 			type = "slider",
 			name = "Grid Width",
 			tooltip = "",
@@ -646,7 +724,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridWidth,
 		},
-		[7] = {
+		[9] = {
 			type = "slider",
 			name = "Grid Height",
 			tooltip = "",
@@ -658,40 +736,40 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridHeight,
 		},
-		[8] = {
+		[10] = {
 			type = "header",
 			name = "Ultimate Tracking Settings",
 			
 		},
-		[9] = {
+		[11] = {
 			type = "description",
 			text = "Select which ultimate abilities to track with the Ultimate Display Grid"
 		},
-		[10] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
-		[11] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
-		[12] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
-		[13] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
-		[14] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
-		[15] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
-		[16] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
-		[17] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
-		[18] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
-		[19] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
-		[20] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
-		[21] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
-		[22] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
-		[23] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
-		[24] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
-		[25] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
-		[26] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
-		[27] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
-		[28] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
-		[29] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
-		[30] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
-		[31] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
-		[32] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
-		[33] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
-		[34] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
+		[12] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
+		[13] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
+		[14] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
+		[15] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
+		[16] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
+		[17] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
+		[18] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
+		[19] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
+		[20] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
+		[21] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
+		[22] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
+		[23] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
+		[24] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
+		[25] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
+		[26] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
+		[27] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
+		[28] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
+		[29] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
+		[30] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
+		[31] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
+		[32] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
+		[33] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
+		[34] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
+		[35] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
+		[36] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
 	}
 	
 	--The first parameter to LibAddOnMenu2:RegisterAddonPanel and 

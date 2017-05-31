@@ -4,13 +4,13 @@ EggCounter = {}
 EggCounter.name = "EggCounter"
 --This is used with saved variables in case their
 --format changes later
-EggCounter.version = 1
+EggCounter.version = 2
 --This is for LibAddOnMenu2 and is used
 --when creating the settings menu
 EggCounter.settingsName = "Egg Counter"
 EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
-EggCounter.settingsVersion = "0.0.1"
+EggCounter.settingsVersion = "0.0.2"
 --This is set to true at the end of initialization
 --The chat system is not ready prior to this and using
 --it will crash the addon
@@ -274,7 +274,7 @@ function EggCounter:Initialize()
 	--Sorcerer
 	self:SetUltimateDropdownNamePrefix("Sorcerer")
 	self:InitializeUltimate("0021",	"Summon Storm Atronach",	"Greater Storm Atronach",	"Summon Charged Atronach",	nil)				--7
-	self:InitializeUltimate("0022",	"Negate Magic",				"Suppresion Field",			"Absorption Field",			nil)				--8
+	self:InitializeUltimate("0022",	"Negate Magic",				"Suppression Field",		"Absorption Field",			nil)				--8
 	self:InitializeUltimate("0023",	"Overload",					"Energy Overload",			"Power Overload",			nil)				--9
 	--Templar													BURNING REMEMBRANCE!!!
 	self:SetUltimateDropdownNamePrefix("Templar")
@@ -823,24 +823,6 @@ function EggCounter.ToggleDebug()
 		else
 			d("DEBUG MODE OFF")
 		end
-	else
-		d("YOU ARE UNWORTHY OF MY SECRETS")
-	end	
-	if account == "@AdenGrey" then
-		d("Fancy!")
-	elseif account =="@Bustincapps" then
-		d("Bustin you are a punk.")
-	elseif account == "@Herbatio" then
-		d("COCKSMOKER!!!")
-	elseif account == "@Nahz" then
-		d("Best guild member detected!")
-	elseif account =="@Pandoraaa" then
-		d("NOVA-BASIC 3.23")
-		d("(C) Copyright Novasoft 1983,1984,1985,1986,1987,1988")
-		d("60300 Bytes free")
-		d("Ok")
-	elseif account =="@SatuElisa" then
-		d("All hail the empress!")
 	end
 end
 

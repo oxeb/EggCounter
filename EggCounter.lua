@@ -667,7 +667,7 @@ function EggCounter:Settings()
 		},
 		[2] = {
 			type = "description",
-			name = "Adjust the behavior of chat messages"
+			text = "Adjust the behavior of chat messages",
 		},
 		[3] = {
 			type = "dropdown",
@@ -685,7 +685,7 @@ function EggCounter:Settings()
 		},
 		[5] = {
 			type = "description",
-			text = "Adjust the size and shape of the Ultimate Display Grid"
+			text = "Adjust the size and shape of the Ultimate Display Grid",
 		},
 		[6] = {
 			type = "dropdown",
@@ -776,7 +776,7 @@ function EggCounter:Settings()
 		},
 		[14] = {
 			type = "description",
-			text = "Select which ultimate abilities to track with the Ultimate Display Grid"
+			text = "Select which ultimate abilities to track with the Ultimate Display Grid",
 		},
 		[15] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
 		[16] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),

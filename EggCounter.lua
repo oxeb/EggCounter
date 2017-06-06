@@ -4,13 +4,13 @@ EggCounter = {}
 EggCounter.name = "EggCounter"
 --This is used with saved variables in case their
 --format changes later
-EggCounter.version = 2
+EggCounter.version = 3
 --This is for LibAddOnMenu2 and is used
 --when creating the settings menu
 EggCounter.settingsName = "Egg Counter"
 EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
-EggCounter.settingsVersion = "0.0.2"
+EggCounter.settingsVersion = "0.0.3"
 --This is set to true at the end of initialization
 --The chat system is not ready prior to this and using
 --it will crash the addon
@@ -67,6 +67,7 @@ EggCounter.ultimateDisplayGridTable = {}
 --These measurements are in display units and not pixels
 --The font values are black magic that hurts my soul
 EggCounter.default = {
+	chatPrompts = "On",
 	ultimateDisplayGridLeft = 128,
 	ultimateDisplayGridTop = 128,
 	ultimateDisplayGridVisibility = "Visible",
@@ -94,6 +95,9 @@ end
 --This will only display messages if the ultimates exist in
 --the encoding table
 function EggCounter:DisplayPrompt(ultimateName, ultimateReady)
+	if self.savedVariables.chatPrompts ~= "On" then
+		return
+	end
 	local encoding = self.ultimateNameTable[ultimateName]
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
 		if ultimateReady then
@@ -526,6 +530,14 @@ end
 
 --The following series of functions all manipulate saved variables
 --and force a reformat of the ultimate display grid when they change
+function EggCounter:GetChatPrompts()
+	return self.savedVariables.chatPrompts
+end
+
+function EggCounter:SetChatPrompts(value)
+	self.savedVariables.chatPrompts = value
+end
+
 function EggCounter:GetUltimateDisplayGridVisibility()
 	return self.savedVariables.ultimateDisplayGridVisibility
 end
@@ -591,6 +603,7 @@ end
 function EggCounter:SetUltimateDisplayGridWidth(value)
 	self.savedVariables.ultimateDisplayGridWidth = value
 	self:FormatUltimateDisplayGrid()
+	self:UpdateUltimateDisplayGridLabels()
 end
 
 function EggCounter:GetUltimateDisplayGridHeight()
@@ -600,6 +613,7 @@ end
 function EggCounter:SetUltimateDisplayGridHeight(value)
 	self.savedVariables.ultimateDisplayGridHeight = value
 	self:FormatUltimateDisplayGrid()
+	self:UpdateUltimateDisplayGridLabels()
 end
 
 function EggCounter:GetSettingsDropdownMenuValue(menuIndex)
@@ -617,6 +631,7 @@ function EggCounter:SetSettingsDropdownMenuValue(menuIndex, menuValue)
 		self.savedVariables.utlimateDisplayGridTrackingTable[menuIndex].encoding = "0000"
 	end
 	self:FormatUltimateDisplayGrid()
+	self:UpdateUltimateDisplayGridLabels()
 end
 
 --menuIndex is captured each time this function is called
@@ -648,13 +663,31 @@ function EggCounter:Settings()
 	local settingsPanelControlData = {
 		[1] = {
 			type = "header",
-			name = "Interface Scale Settings",
+			name = "Chat Settings",
 		},
 		[2] = {
 			type = "description",
-			text = "Adjust the size and shape of the Ultimate Display Grid"
+			name = "Adjust the behavior of chat messages"
 		},
 		[3] = {
+			type = "dropdown",
+			name = "Chat Prompts",
+			tooltip = "",
+			choices = {"On", "Off", },
+			getFunc = function() return EggCounter:GetChatPrompts() end,
+			setFunc = function(value) EggCounter:SetChatPrompts(value) end,
+			width = "full",
+			default = self.default.chatPrompts,
+		},
+		[4] = {
+			type = "header",
+			name = "Interface Scale Settings",
+		},
+		[5] = {
+			type = "description",
+			text = "Adjust the size and shape of the Ultimate Display Grid"
+		},
+		[6] = {
 			type = "dropdown",
 			name = "Visibility",
 			tooltip = "",
@@ -664,7 +697,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridVisibility,
 		},
-		[4] = {
+		[7] = {
 			type = "slider",
 			name = "Opacity",
 			tooltip = "",
@@ -676,7 +709,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridOpacity,
 		},
-		[5] = {
+		[8] = {
 			type = "slider",
 			name = "Texture Size",
 			tooltip = "",
@@ -688,7 +721,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridTextureSize,
 		},
-		[6] = {
+		[9] = {
 			type = "slider",
 			name = "Label Size",
 			tooltip = "",
@@ -700,7 +733,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridLabelSize,
 		},
-		[7] = {
+		[10] = {
 			type = "slider",
 			name = "Font Size",
 			tooltip = "",
@@ -712,7 +745,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridFontSize,
 		},
-		[8] = {
+		[11] = {
 			type = "slider",
 			name = "Grid Width",
 			tooltip = "",
@@ -724,7 +757,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridWidth,
 		},
-		[9] = {
+		[12] = {
 			type = "slider",
 			name = "Grid Height",
 			tooltip = "",
@@ -736,40 +769,40 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridHeight,
 		},
-		[10] = {
+		[13] = {
 			type = "header",
 			name = "Ultimate Tracking Settings",
 			
 		},
-		[11] = {
+		[14] = {
 			type = "description",
 			text = "Select which ultimate abilities to track with the Ultimate Display Grid"
 		},
-		[12] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
-		[13] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
-		[14] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
-		[15] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
-		[16] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
-		[17] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
-		[18] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
-		[19] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
-		[20] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
-		[21] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
-		[22] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
-		[23] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
-		[24] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
-		[25] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
-		[26] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
-		[27] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
-		[28] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
-		[29] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
-		[30] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
-		[31] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
-		[32] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
-		[33] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
-		[34] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
-		[35] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
-		[36] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
+		[15] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
+		[16] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
+		[17] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
+		[18] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
+		[19] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
+		[20] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
+		[21] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
+		[22] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
+		[23] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
+		[24] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
+		[25] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
+		[26] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
+		[27] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
+		[28] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
+		[29] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
+		[30] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
+		[31] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
+		[32] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
+		[33] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
+		[34] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
+		[35] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
+		[36] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
+		[37] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
+		[38] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
+		[39] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
 	}
 	
 	--The first parameter to LibAddOnMenu2:RegisterAddonPanel and 
@@ -903,15 +936,16 @@ end
 --EVENT_CHAT_MESSAGE_CHANNEL (integer eventCode,number channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
 function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text, isCustomerService, fromDisplayName)
 	local messageLength = string.len(text)
-	if (((channelType == CHAT_CHANNEL_SAY) and EggCounter.debug) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (messageLength == 16) then
-		if EggCounter:ValidateMessage(text) then
-			local mainBarUltimateEncoding = string.sub(text, 6, 9)
-			local mainBarUltimateReady = EggCounter:DecodeBoolean(string.byte(text, 10))
-			local backupBarUltimateEncoding = string.sub(text, 12, 15)
-			local backupBarUltimateReady = EggCounter:DecodeBoolean(string.byte(text, 16))
+	if (((channelType == CHAT_CHANNEL_SAY) and EggCounter.debug) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (messageLength >= 16) then
+		--Truncate any characters after index 16
+		local message = string.sub(text, 1, 16)
+		if EggCounter:ValidateMessage(message) then
+			local mainBarUltimateEncoding = string.sub(message, 6, 9)
+			local mainBarUltimateReady = EggCounter:DecodeBoolean(string.byte(message, 10))
+			local backupBarUltimateEncoding = string.sub(message, 12, 15)
+			local backupBarUltimateReady = EggCounter:DecodeBoolean(string.byte(message, 16))
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
 			EggCounter:UpdateUltimateDisplayGridLabels()
-
 		end
 	end
 end

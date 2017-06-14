@@ -936,7 +936,7 @@ function EggCounter:GenerateReadableReportMessage(ultimateName, ultimateReady)
 	if (type(encoding) == "string") and (type(self.ultimateEncodingTable[encoding]) == "table") then
 		local readyMessage = "no"
 		if ultimateReady then
-			local readyMessage = "ready"
+			readyMessage = "ready"
 		end
 		message = self.ultimateEncodingTable[encoding].readable .. " = " .. readyMessage
 	end
@@ -947,7 +947,7 @@ end
 --This can be called from XML so it is a function and not a method
 function EggCounter.OnReportBinding()
 	local message = ""
-	if self.savedVariables.chatReadable == "Readable" then
+	if EggCounter.savedVariables.chatReadable == "Readable" then
 		local mainBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
 		local backupBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
 		message = "^ " .. mainBarUltimateMessage .. " " .. backupBarUltimateMessage
@@ -1007,10 +1007,6 @@ function EggCounter:DecodeBoolean(character)
 	return false
 end
 
-spaceClass = {9, 10,13, 32, }
-
-identifierClass = { {65, 90},{97, 122},95,}
-
 EggCounter.spaceCharacterClass = {
 	9,	--TAB
 	10,	--LF
@@ -1042,9 +1038,11 @@ function EggCounter:MatchCharacterClass(character, class)
 end
 
 function EggCounter:Tokenize(index, text, class)
+	local paranoid = index
+	local safety = 0
 	while true do
 		local character = string.byte(text, index)
-		if not self.matchCharacterClass(character, class) then
+		if not self:MatchCharacterClass(character, class) then
 			return index
 		end
 		if index < string.len(text) then
@@ -1052,12 +1050,16 @@ function EggCounter:Tokenize(index, text, class)
 		else
 			return index
 		end
+		safety = safety + 1
+		if safety > 256 then
+			return paranoid
+		end
 	end
 end
 
 function EggCounter:Parse(index, text, class)
 	local left = index
-	local right = self.Tokenize(index, text, class)
+	local right = self:Tokenize(index, text, class)
 	if left == right then
 		return right, false, ""
 	else
@@ -1066,12 +1068,12 @@ function EggCounter:Parse(index, text, class)
 end
 
 function EggCounter:ValidatePrefix(symbol)
-	symbolLength = string.len(symbol)
-	for encoding in pairs self.ultimateEncodingTable do
-		table = self.ultimateEncodingTable[encoding]
-		prefixLength = string.len(table.prefix)
+	local symbolLength = string.len(symbol)
+	for encoding in pairs(self.ultimateEncodingTable) do
+		local table = self.ultimateEncodingTable[encoding]
+		local prefixLength = string.len(table.prefix)
 		if symbolLength >= prefixLength then
-			symbolPrefix = string.sub(symbol, 1, prefixLength)
+			local symbolPrefix = string.sub(symbol, 1, prefixLength)
 			if symbolPrefix == table.prefix then
 				return true, encoding
 			end
@@ -1105,11 +1107,14 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		local backupBarUltimateEncoding = "0000"
 		local backupBarUltimateReady = false
 		index, found, symbol = EggCounter:Parse(index, text, {94, })	--^
+		d(symbol)
 		if (not found) or (symbol ~= "^") then
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
+		d(symbol)
 		if not found then
 			return
 		end
@@ -1118,12 +1123,16 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, {61, })	--=
+		d(symbol)
 		if (not found) or (symbol ~= "=") then
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
+		d(symbol)
 		if found and (symbol == "ready") then
 			mainBarUltimateReady = true
 		elseif found and (symbol == "no") then
@@ -1134,28 +1143,37 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		--At least one valid piece of input has been found so failures
 		--must be handeled differently
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
+		d(symbol)
 		if not found then
 			--Elegance has been defeated
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
+			d("P1")
 			return
 		end
 		found, backupBarUltimateEncoding = EggCounter:ValidatePrefix(symbol)
 		if not found then
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
+			d("P2")
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, {61, })	--=
+		d(symbol)
 		if (not found) or (symbol ~= "=") then
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
+			d("P3")
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
+		d(symbol)
 		if found and (symbol == "ready") then
 			backupBarUltimateReady = true
 		elseif found and (symbol == "no") then
@@ -1163,10 +1181,12 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		else
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
+			d("P4")
 			return
 		end
 		EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
 		EggCounter:UpdateUltimateDisplayGridLabels()
+		d("P5")
 	end
 end
 

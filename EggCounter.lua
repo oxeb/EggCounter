@@ -67,7 +67,7 @@ EggCounter.ultimateDisplayGridTable = {}
 --These measurements are in display units and not pixels
 --The font values are black magic that hurts my soul
 EggCounter.default = {
-	chatReadable = "Readable",
+	chatMessageStyle = "Readable",
 	chatPrompts = "On",
 	ultimateDisplayGridLeft = 128,
 	ultimateDisplayGridTop = 128,
@@ -328,7 +328,7 @@ function EggCounter:Initialize()
 	self:SetUltimateReadableEncoding("0003", "ma",	"magma")		--Magma Armor
 	self:SetUltimateReadableEncoding("0011", "str",	"stroke")		--Death Stroke
 	self:SetUltimateReadableEncoding("0012", "v",	"veil")			--Consuming Darkness
-	self:SetUltimateReadableEncoding("0013", "sh", "shred")			--Soul Shred
+	self:SetUltimateReadableEncoding("0013", "sh",	"shred")		--Soul Shred
 	self:SetUltimateReadableEncoding("0021", "a",	"atro")			--Summon Storm Atronach
 	self:SetUltimateReadableEncoding("0022", "ne",	"negate")		--Negate Magic
 	self:SetUltimateReadableEncoding("0023", "o",	"overload")		--Overload
@@ -568,12 +568,12 @@ end
 
 --The following series of functions all manipulate saved variables
 --and force a reformat of the ultimate display grid when they change
-function EggCounter:GetChatReadable()
-	return self.savedVariables.chatReadable
+function EggCounter:GetChatMessageStyle()
+	return self.savedVariables.chatMessageStyle
 end
 
-function EggCounter:SetChatReadable(value)
-	self.savedVariables.chatReadable = value
+function EggCounter:SetChatMessageStyle(value)
+	self.savedVariables.chatMessageStyle = value
 end
 
 function EggCounter:GetChatPrompts()
@@ -717,13 +717,13 @@ function EggCounter:Settings()
 		},
 		[3] = {
 			type = "dropdown",
-			name = "Readable Chat Messages",
+			name = "Chat Message Style",
 			tooltip = "",
 			choices = {"Readable", "Gibberish", },
-			getFunc = function() return EggCounter:GetChatReadable() end,
-			setFunc = function(value) EggCounter:SetChatReadable(value) end,
+			getFunc = function() return EggCounter:GetChatMessageStyle() end,
+			setFunc = function(value) EggCounter:SetChatMessageStyle(value) end,
 			width = "full",
-			default = self.default.chatReadable,
+			default = self.default.chatMessageStyle,
 		},
 		[4] = {
 			type = "dropdown",
@@ -947,7 +947,7 @@ end
 --This can be called from XML so it is a function and not a method
 function EggCounter.OnReportBinding()
 	local message = ""
-	if EggCounter.savedVariables.chatReadable == "Readable" then
+	if EggCounter.savedVariables.chatMessageStyle == "Readable" then
 		local mainBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
 		local backupBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
 		message = "^ " .. mainBarUltimateMessage .. " " .. backupBarUltimateMessage
@@ -1038,30 +1038,32 @@ function EggCounter:MatchCharacterClass(character, class)
 end
 
 function EggCounter:Tokenize(index, text, class)
-	local paranoid = index
-	local safety = 0
+	local iterations = 0
+	local original = index
 	while true do
 		local character = string.byte(text, index)
 		if not self:MatchCharacterClass(character, class) then
-			return index
+			return false, index
 		end
 		if index < string.len(text) then
 			index = index + 1
 		else
-			return index
+			return true, index
 		end
-		safety = safety + 1
-		if safety > 256 then
-			return paranoid
+		iterations = iterations + 1
+		if iterations > 256 then
+			return false, original
 		end
 	end
 end
 
 function EggCounter:Parse(index, text, class)
 	local left = index
-	local right = self:Tokenize(index, text, class)
-	if left == right then
+	local final, right = self:Tokenize(index, text, class)
+	if left >= right then
 		return right, false, ""
+	elseif final then
+		return right, true, string.sub(text, left, right)
 	else
 		return right, true, string.sub(text, left, right - 1)
 	end
@@ -1107,14 +1109,11 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		local backupBarUltimateEncoding = "0000"
 		local backupBarUltimateReady = false
 		index, found, symbol = EggCounter:Parse(index, text, {94, })	--^
-		d(symbol)
 		if (not found) or (symbol ~= "^") then
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
-		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-		d(symbol)
 		if not found then
 			return
 		end
@@ -1123,16 +1122,12 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
-		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, {61, })	--=
-		d(symbol)
 		if (not found) or (symbol ~= "=") then
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
-		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-		d(symbol)
 		if found and (symbol == "ready") then
 			mainBarUltimateReady = true
 		elseif found and (symbol == "no") then
@@ -1143,37 +1138,28 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		--At least one valid piece of input has been found so failures
 		--must be handeled differently
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
-		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-		d(symbol)
 		if not found then
 			--Elegance has been defeated
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
-			d("P1")
 			return
 		end
 		found, backupBarUltimateEncoding = EggCounter:ValidatePrefix(symbol)
 		if not found then
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
-			d("P2")
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
-		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, {61, })	--=
-		d(symbol)
 		if (not found) or (symbol ~= "=") then
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
-			d("P3")
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
-		d(symbol)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-		d(symbol)
 		if found and (symbol == "ready") then
 			backupBarUltimateReady = true
 		elseif found and (symbol == "no") then
@@ -1181,12 +1167,10 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		else
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)
 			EggCounter:UpdateUltimateDisplayGridLabels()
-			d("P4")
 			return
 		end
 		EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
 		EggCounter:UpdateUltimateDisplayGridLabels()
-		d("P5")
 	end
 end
 

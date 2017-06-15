@@ -950,7 +950,7 @@ function EggCounter.OnReportBinding()
 	if EggCounter.savedVariables.chatMessageStyle == "Readable" then
 		local mainBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
 		local backupBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
-		message = "^ " .. mainBarUltimateMessage .. " " .. backupBarUltimateMessage
+		message = "^ " .. mainBarUltimateMessage .. " / " .. backupBarUltimateMessage
 	else 
 		--This ugly mess is here to avoid confusion with text from players
 		local mainBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
@@ -1137,6 +1137,9 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		end
 		--At least one valid piece of input has been found so failures
 		--must be handeled differently
+		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		--The divider is optional
+		index, found, symbol = EggCounter:Parse(index, text, {47, })	--/
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
 		if not found then

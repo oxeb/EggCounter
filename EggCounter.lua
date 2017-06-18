@@ -446,6 +446,17 @@ function EggCounter:Initialize()
 	SLASH_COMMANDS[self.debugCommand] = EggCounter.ToggleDebug
 	--The last thing to do is turn on the settings panel
 	self:Settings()
+
+	--This is to fix problems with loading order
+	EVENT_MANAGER:RegisterForEvent(self.name, EVENT_PLAYER_ACTIVATED, self.OnPlayerActivated)
+end
+
+--This event is dedicated to Nova J
+--May her computer burn for eternity
+--in the fires of the red mountain
+function EggCounter.OnPlayerActivated(event, initial)
+	EggCounter:FormatUltimateDisplayGrid()
+	EggCounter:UpdateUltimateDisplayGridLabels()
 end
 
 --This function handles the init event
@@ -1060,7 +1071,7 @@ end
 function EggCounter:Parse(index, text, class)
 	local left = index
 	local final, right = self:Tokenize(index, text, class)
-	if left >= right then
+	if ((left > right) and final) or ((left >= right) and (not final)) then
 		return right, false, ""
 	elseif final then
 		return right, true, string.sub(text, left, right)
@@ -1113,6 +1124,11 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 			return
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
+		--This line is in case the player never bar swaps
+		--Seriously
+		--The divider is optional
+		index, found, symbol = EggCounter:Parse(index, text, {47, })	--/
+		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
 		if not found then
 			return
@@ -1128,9 +1144,9 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-		if found and (symbol == "ready") then
+		if found and (string.len(symbol) >= 1) and ((string.byte(symbol, 1) == 78) or (string.byte(symbol, 1) == 114)) then	--R r
 			mainBarUltimateReady = true
-		elseif found and (symbol == "no") then
+		elseif found and (string.len(symbol) >= 1) and ((string.byte(symbol, 1) == 82) or (string.byte(symbol, 1) == 110)) then	--N n
 			mainBarUltimateReady = false
 		else
 			return
@@ -1163,9 +1179,10 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-		if found and (symbol == "ready") then
+
+		if found and (string.len(symbol) >= 1) and ((string.byte(symbol, 1) == 78) or (string.byte(symbol, 1) == 114)) then	--R r
 			backupBarUltimateReady = true
-		elseif found and (symbol == "no") then
+		elseif found and (string.len(symbol) >= 1) and ((string.byte(symbol, 1) == 82) or (string.byte(symbol, 1) == 110)) then	--N n
 			backupBarUltimateReady = false
 		else
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, "0000", false)

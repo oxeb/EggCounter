@@ -10,7 +10,7 @@ EggCounter.version = 3
 EggCounter.settingsName = "Egg Counter"
 EggCounter.settingsAuthor = "Gnevsyrom"
 EggCounter.settingsCommand = "/eggc"
-EggCounter.settingsVersion = "0.0.4"
+EggCounter.settingsVersion = "0.0.5"
 --This is set to true at the end of initialization
 --The chat system is not ready prior to this and using
 --it will crash the addon
@@ -67,6 +67,7 @@ EggCounter.ultimateDisplayGridTable = {}
 --These measurements are in display units and not pixels
 --The font values are black magic that hurts my soul
 EggCounter.default = {
+	chatMessageChannel = "Group",
 	chatMessageStyle = "Readable",
 	chatPrompts = "On",
 	ultimateDisplayGridLeft = 128,
@@ -577,8 +578,26 @@ function EggCounter:UpdateUltimateDisplayGridLabels()
 	end
 end
 
+function EggCounter.OnToggleBinding()
+	if EggCounter.savedVariables.ultimateDisplayGridVisibility == "Visible" then
+		EggCounter.savedVariables.ultimateDisplayGridVisibility = "Hidden"
+	else
+		EggCounter.savedVariables.ultimateDisplayGridVisibility = "Visible"
+	end
+	EggCounter:FormatUltimateDisplayGrid()
+	EggCounter:UpdateUltimateDisplayGridLabels()
+end
+
 --The following series of functions all manipulate saved variables
 --and force a reformat of the ultimate display grid when they change
+function EggCounter:GetChatMessageChannel()
+	return self.savedVariables.chatMessageChannel
+end
+
+function EggCounter:SetChatMessageChannel(value)
+	self.savedVariables.chatMessageChannel = value
+end
+
 function EggCounter:GetChatMessageStyle()
 	return self.savedVariables.chatMessageStyle
 end
@@ -728,6 +747,16 @@ function EggCounter:Settings()
 		},
 		[3] = {
 			type = "dropdown",
+			name = "Chat Message Channel",
+			tooltip = "",
+			choices = {"Group", "Whisper", },
+			getFunc = function() return EggCounter:GetChatMessageChannel() end,
+			setFunc = function(value) EggCounter:SetChatMessageChannel(value) end,
+			width = "full",
+			default = self.default.chatMessageChannel,
+		},
+		[4] = {
+			type = "dropdown",
 			name = "Chat Message Style",
 			tooltip = "",
 			choices = {"Readable", "Gibberish", },
@@ -736,7 +765,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.chatMessageStyle,
 		},
-		[4] = {
+		[5] = {
 			type = "dropdown",
 			name = "Chat Prompts",
 			tooltip = "",
@@ -746,15 +775,15 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.chatPrompts,
 		},
-		[5] = {
+		[6] = {
 			type = "header",
 			name = "Interface Scale Settings",
 		},
-		[6] = {
+		[7] = {
 			type = "description",
 			text = "Adjust the size and shape of the Ultimate Display Grid",
 		},
-		[7] = {
+		[8] = {
 			type = "dropdown",
 			name = "Visibility",
 			tooltip = "",
@@ -764,7 +793,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridVisibility,
 		},
-		[8] = {
+		[9] = {
 			type = "slider",
 			name = "Opacity",
 			tooltip = "",
@@ -776,7 +805,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridOpacity,
 		},
-		[9] = {
+		[10] = {
 			type = "slider",
 			name = "Texture Size",
 			tooltip = "",
@@ -788,7 +817,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridTextureSize,
 		},
-		[10] = {
+		[11] = {
 			type = "slider",
 			name = "Label Size",
 			tooltip = "",
@@ -800,7 +829,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridLabelSize,
 		},
-		[11] = {
+		[12] = {
 			type = "slider",
 			name = "Font Size",
 			tooltip = "",
@@ -812,7 +841,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridFontSize,
 		},
-		[12] = {
+		[13] = {
 			type = "slider",
 			name = "Grid Width",
 			tooltip = "",
@@ -824,7 +853,7 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridWidth,
 		},
-		[13] = {
+		[14] = {
 			type = "slider",
 			name = "Grid Height",
 			tooltip = "",
@@ -836,40 +865,40 @@ function EggCounter:Settings()
 			width = "full",
 			default = self.default.ultimateDisplayGridHeight,
 		},
-		[14] = {
+		[15] = {
 			type = "header",
 			name = "Ultimate Tracking Settings",
 			
 		},
-		[15] = {
+		[16] = {
 			type = "description",
 			text = "Select which ultimate abilities to track with the Ultimate Display Grid",
 		},
-		[16] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
-		[17] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
-		[18] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
-		[19] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
-		[20] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
-		[21] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
-		[22] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
-		[23] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
-		[24] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
-		[25] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
-		[26] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
-		[27] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
-		[28] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
-		[29] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
-		[30] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
-		[31] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
-		[32] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
-		[33] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
-		[34] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
-		[35] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
-		[36] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
-		[37] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
-		[38] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
-		[39] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
-		[40] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
+		[17] = self:GenerateSettingsDropdownMenu(1, "Ultimate 1", ""),
+		[18] = self:GenerateSettingsDropdownMenu(2, "Ultimate 2", ""),
+		[19] = self:GenerateSettingsDropdownMenu(3, "Ultimate 3", ""),
+		[20] = self:GenerateSettingsDropdownMenu(4, "Ultimate 4", ""),
+		[21] = self:GenerateSettingsDropdownMenu(5, "Ultimate 5", ""),
+		[22] = self:GenerateSettingsDropdownMenu(6, "Ultimate 6", ""),
+		[23] = self:GenerateSettingsDropdownMenu(7, "Ultimate 7", ""),
+		[24] = self:GenerateSettingsDropdownMenu(8, "Ultimate 8", ""),
+		[25] = self:GenerateSettingsDropdownMenu(9, "Ultimate 9", ""),
+		[26] = self:GenerateSettingsDropdownMenu(10, "Ultimate 10", ""),
+		[27] = self:GenerateSettingsDropdownMenu(11, "Ultimate 11", ""),
+		[28] = self:GenerateSettingsDropdownMenu(12, "Ultimate 12", ""),
+		[29] = self:GenerateSettingsDropdownMenu(13, "Ultimate 13", ""),
+		[30] = self:GenerateSettingsDropdownMenu(14, "Ultimate 14", ""),
+		[31] = self:GenerateSettingsDropdownMenu(15, "Ultimate 15", ""),
+		[32] = self:GenerateSettingsDropdownMenu(16, "Ultimate 16", ""),
+		[33] = self:GenerateSettingsDropdownMenu(17, "Ultimate 17", ""),
+		[34] = self:GenerateSettingsDropdownMenu(18, "Ultimate 18", ""),
+		[35] = self:GenerateSettingsDropdownMenu(19, "Ultimate 19", ""),
+		[36] = self:GenerateSettingsDropdownMenu(20, "Ultimate 20", ""),
+		[37] = self:GenerateSettingsDropdownMenu(21, "Ultimate 21", ""),
+		[38] = self:GenerateSettingsDropdownMenu(22, "Ultimate 22", ""),
+		[39] = self:GenerateSettingsDropdownMenu(23, "Ultimate 23", ""),
+		[40] = self:GenerateSettingsDropdownMenu(24, "Ultimate 24", ""),
+		[41] = self:GenerateSettingsDropdownMenu(25, "Ultimate 25", ""),
 	}
 	
 	--The first parameter to LibAddOnMenu2:RegisterAddonPanel and 
@@ -937,8 +966,10 @@ function EggCounter:GenerateReportMessage(ultimateName, ultimateReady)
 			readyMessage = "t"
 		end
 		message = encoding .. readyMessage
+	else
+		encoding = "0000"
 	end
-	return message
+	return message, encoding
 end
 
 function EggCounter:GenerateReadableReportMessage(ultimateName, ultimateReady)
@@ -950,26 +981,38 @@ function EggCounter:GenerateReadableReportMessage(ultimateName, ultimateReady)
 			readyMessage = "ready"
 		end
 		message = self.ultimateEncodingTable[encoding].readable .. " = " .. readyMessage
+	else
+		encoding = "0000"
 	end
-	return message
+	return message, encoding
 end
 
 --This function handles the Report binding under controls
 --This can be called from XML so it is a function and not a method
 function EggCounter.OnReportBinding()
 	local message = ""
+	local mainBarUltimateMessage = ""
+	local mainBarUltimateEncoding = "0000"
+	local backupBarUltimateMessage = ""
+	local backupBarUltimateEncoding = "0000"
 	if EggCounter.savedVariables.chatMessageStyle == "Readable" then
-		local mainBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
-		local backupBarUltimateMessage = EggCounter:GenerateReadableReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
+		mainBarUltimateMessage, mainBarUltimateEncoding = EggCounter:GenerateReadableReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
+		backupBarUltimateMessage, backupBarUltimateEncoding = EggCounter:GenerateReadableReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
 		message = "^ " .. mainBarUltimateMessage .. " / " .. backupBarUltimateMessage
 	else 
 		--This ugly mess is here to avoid confusion with text from players
-		local mainBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
-		local backupBarUltimateMessage = EggCounter:GenerateReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
+		mainBarUltimateMessage, mainBarUltimateEncoding = EggCounter:GenerateReportMessage(EggCounter.mainBarUltimateName, EggCounter.mainBarUltimateReady)
+		backupBarUltimateMessage, backupBarUltimateEncoding = EggCounter:GenerateReportMessage(EggCounter.backupBarUltimateName, EggCounter.backupBarUltimateReady)
 		message = "#@$?%" .. mainBarUltimateMessage .. "^" .. backupBarUltimateMessage
 	end
-	if IsUnitGrouped("player") then
+	local playerDisplayName = GetDisplayName()
+	local groupLeaderTag = GetGroupLeaderUnitTag()
+	local groupLeaderDisplayName = GetUnitDisplayName(groupLeaderTag)
+	local grouped = IsUnitGrouped("player")
+	if (EggCounter.savedVariables.chatMessageChannel == "Group") and grouped then
 		StartChatInput(message, CHAT_CHANNEL_PARTY, nil)
+	elseif (EggCounter.savedVariables.chatMessageChannel == "Whisper") and grouped then
+		StartChatInput(message, CHAT_CHANNEL_WHISPER, groupLeaderDisplayName)
 	elseif EggCounter.debug then
 		StartChatInput(message, CHAT_CHANNEL_SAY, nil)
 	end
@@ -1099,8 +1142,17 @@ end
 --This can be called from an event so it is a function and not a method
 --EVENT_CHAT_MESSAGE_CHANNEL (integer eventCode,number channelType, string fromName, string text, boolean isCustomerService, string fromDisplayName)
 function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text, isCustomerService, fromDisplayName)
+	if isCustomerService then
+		return
+	end
+	if (channelType == CHAT_CHANNEL_SAY) and not EggCounter.debug then
+		return
+	end
+	if (channelType ~= CHAT_CHANNEL_SAY) and (channelType ~= CHAT_CHANNEL_PARTY) and (channelType ~= CHAT_CHANNEL_WHISPER) then
+		return
+	end
 	local messageLength = string.len(text)
-	if (((channelType == CHAT_CHANNEL_SAY) and EggCounter.debug) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (messageLength >= 16) and (string.byte(text, 1) == 35) then
+	if (messageLength >= 16) and (string.byte(text, 1) == 35) then
 		--Truncate any characters after index 16
 		local message = string.sub(text, 1, 16)
 		if EggCounter:ValidateMessage(message) then
@@ -1111,7 +1163,7 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 			EggCounter:UpdateUltimateStatus(fromDisplayName, mainBarUltimateEncoding, mainBarUltimateReady, backupBarUltimateEncoding, backupBarUltimateReady)
 			EggCounter:UpdateUltimateDisplayGridLabels()
 		end
-	elseif (((channelType == CHAT_CHANNEL_SAY) and EggCounter.debug) or (channelType == CHAT_CHANNEL_PARTY)) and (not isCustomerService) and (string.byte(text, 1) == 94) then
+	elseif (string.byte(text, 1) == 94) then
 		local index = 1
 		local found = false
 		local symbol = ""
@@ -1179,7 +1231,6 @@ function EggCounter.OnChatMessageChannel(eventCode, channelType, fromName, text,
 		end
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.spaceCharacterClass)
 		index, found, symbol = EggCounter:Parse(index, text, EggCounter.symbolCharacterClass)
-
 		if found and (string.len(symbol) >= 1) and ((string.byte(symbol, 1) == 78) or (string.byte(symbol, 1) == 114)) then	--R r
 			backupBarUltimateReady = true
 		elseif found and (string.len(symbol) >= 1) and ((string.byte(symbol, 1) == 82) or (string.byte(symbol, 1) == 110)) then	--N n

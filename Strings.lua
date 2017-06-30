@@ -3,6 +3,7 @@ local strings = {
 	SI_BINDING_NAME_EGGCOUNTER_DETECT = "Detect Ultimates",
 	SI_BINDING_NAME_EGGCOUNTER_REPORT = "Report Ultimates in Chat",
 	SI_BINDING_NAME_EGGCOUNTER_RESET = "Reset the Ultimate Display Grid",
+	SI_BINDING_NAME_EGGCOUNTER_TOGGLE = "Hide or Show",
 }
 
 for key, value in pairs(strings) do

@@ -10,6 +10,9 @@
 			<Action name="EGGCOUNTER_RESET">
 				<Down>EggCounter.OnResetBinding()</Down>
 			</Action>
+			<Action name="EGGCOUNTER_TOGGLE">
+				<Down>EggCounter.OnToggleBinding()</Down>
+			</Action>
 		</Category>
 	</Layer>
 </Bindings>
